@@ -1,0 +1,11 @@
+{
+    "display_name": "Hashdragon Plugin",
+    "version": "1.0",
+    "description": "Plugin Hashdragon Plugin",
+    "project_url": "https://github.com/Quellwasser12/hashdragon-plugin",
+    "minimum_ec_version": "4.0",
+    "package_name": "hashdragon-plugin",
+    "available_for": [
+        "qt"
+    ]
+}

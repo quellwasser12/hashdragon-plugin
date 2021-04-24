@@ -1,0 +1,3 @@
+* Hashdragon Electron Cash Plugin
+
+  A Electron Cash plugin to manage hashdragons.  WIP

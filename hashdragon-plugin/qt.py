@@ -4,8 +4,9 @@ from PyQt5.QtWidgets import *
 import electroncash.version
 from electroncash.i18n import _
 from electroncash.plugins import BasePlugin, hook
-
-
+from electroncash.address import Script, Address, ScriptOutput
+from binascii import unhexlify
+from .hashdragons import Hashdragon
 
 class Plugin(BasePlugin):
     electrumcash_qt_gui = None
@@ -62,7 +63,24 @@ class Plugin(BasePlugin):
             self.load_wallet(window.wallet, window)
 
 
-    # txn.get_outputs()
+    def extract_hashdragons(self, wallet, coins):
+        txn_list = []
+        for coin in coins:
+            tx = wallet.transactions.get(coin['prevout_hash'])
+
+            for vout in tx.get_outputs():
+                d,index = vout
+
+                if isinstance(d, ScriptOutput) and d.is_opreturn():
+                    script = d.to_script()
+                    ops = Script.get_ops(script)
+                    i,lokad = ops[1]
+
+                    # TODO Extract logic, and check command: hashdragon may not be in this script
+                    if lokad == unhexlify('d101d400'):
+                        i,hd = ops[6]
+                        txn_list.append(hd.hex())
+        return txn_list
 
     @hook
     def load_wallet(self, wallet, window):
@@ -71,25 +89,22 @@ class Plugin(BasePlugin):
         """
         wallet_name = window.wallet.basename()
         self.wallet_windows[wallet_name] = window
-        print("wallet loaded")
         self.add_ui_for_wallet(wallet_name, window)
         self.refresh_ui_for_wallet(wallet_name)
 
-        ui = self.wallet_payment_lists['default_wallet']
+        ui = self.wallet_payment_lists[wallet_name]
 
         spendable_coins = wallet.get_spendable_coins(None, self.config)
-        txn_list = []
-        for coin in spendable_coins:
-            tx = wallet.transactions.get(coin['prevout_hash'])
-            txn_list.append(tx)
+        hashdragons = self.extract_hashdragons(wallet, spendable_coins)
 
-            d,index = tx.get_outputs()[0]
-            print(d.to_script())
-
-            if d.to_ui_string().startswith("OP_RETURN"):
-                hd_item = QTreeWidgetItem(ui)
-                hd_item.setData(0, 0, d.to_ui_string())
-                ui.addChild(hd_item)
+        for hd in hashdragons:
+            hd_item = QTreeWidgetItem(ui)
+            h = Hashdragon.from_hex_string(hd)
+            hd_item.setData(0, 0, h.hashdragon())
+            hd_item.setData(1, 0, h.strength())
+            r, g, b = h.colour_as_rgb()
+            hd_item.setBackground(2, QBrush(QColor(r, g, b)))
+            ui.addChild(hd_item)
 
 
     @hook
@@ -100,13 +115,24 @@ class Plugin(BasePlugin):
         self.remove_ui_for_wallet(wallet_name, window)
 
 
+    def _create_qicon(self):
+        pixmap = QPixmap(40, 40)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setPen(Qt.black)
+        painter.setFont(QFont("Times", 32, QFont.Bold))
+        painter.drawText(QRect(0, 0, 40, 40), Qt.AlignCenter, u"\u136C")
+        painter.end()
+        return QIcon(pixmap)
+
+
     def add_ui_for_wallet(self, wallet_name, window):
         from .ui import Ui
         l = Ui(window, self, wallet_name)
         tab = window.create_list_tab(l)
         self.wallet_payment_tabs[wallet_name] = tab
         self.wallet_payment_lists[wallet_name] = l
-        window.tabs.addTab(tab, QIcon(":icons/preferences.png"), _('Hashdragons'))
+        window.tabs.addTab(tab, self._create_qicon(), _('Hashdragons'))
 
     def remove_ui_for_wallet(self, wallet_name, window):
 

@@ -9,9 +9,9 @@ from electroncash_gui.qt.util import MyTreeWidget, MessageBoxMixin
 class Ui(MyTreeWidget, MessageBoxMixin):
     def __init__(self, parent, plugin, wallet_name):
         MyTreeWidget.__init__(self, parent, self.create_menu, [
-            _('Description'),
-            _('Address'),
-            _('Amount'),
+            _('Hashdragon'),
+            _('Strength'),
+            _('Colour'),
         ], 0, [])
 
         self.plugin = plugin

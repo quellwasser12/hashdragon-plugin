@@ -6,7 +6,7 @@ from electroncash.i18n import _
 from electroncash.plugins import BasePlugin, hook
 from electroncash.address import Script, Address, ScriptOutput
 from binascii import unhexlify
-from .hashdragons import Hashdragon
+from .hashdragons import Hashdragon, HashdragonDescriber
 
 class Plugin(BasePlugin):
     electrumcash_qt_gui = None
@@ -97,7 +97,8 @@ class Plugin(BasePlugin):
                         elif command_as_int == 210 and len(ops) > 5:
                             _, dest_index = ops[4]
                             dest_index = int.from_bytes(dest_index, 'big')
-                            _, owner_vout = tx.get_outputs()[dest_index]
+                            owner_vout, _ = tx.get_outputs()[dest_index]
+                            print("Owner VOUT", owner_vout)
                             if wallet.is_mine(owner_vout):
                                 # TODO Find original hashdragon from previous inputs
                                 txn_list.append('d400000000000000000000000000000000000000000000000000000000000000')
@@ -118,14 +119,16 @@ class Plugin(BasePlugin):
 
         spendable_coins = wallet.get_spendable_coins(None, self.config)
         hashdragons = self.extract_hashdragons(wallet, spendable_coins)
+        describer = HashdragonDescriber()
 
         for hd in hashdragons:
             hd_item = QTreeWidgetItem(ui)
             h = Hashdragon.from_hex_string(hd)
             hd_item.setData(0, 0, h.hashdragon())
-            hd_item.setData(1, 0, h.strength())
+            hd_item.setData(1, 0, describer.describe(h))
+            hd_item.setData(2, 0, h.strength())
             r, g, b = h.colour_as_rgb()
-            hd_item.setBackground(2, QBrush(QColor(r, g, b)))
+            hd_item.setBackground(3, QBrush(QColor(r, g, b)))
             ui.addChild(hd_item)
 
 

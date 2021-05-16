@@ -64,9 +64,15 @@ class Plugin(BasePlugin):
 
 
     def extract_hashdragons(self, wallet, coins):
+        '''
+        Extracts all the hashdragons in the wallet by going through all the transactions
+        in the wallet.
+        '''
         txn_list = []
+
         for coin in coins:
             tx = wallet.transactions.get(coin['prevout_hash'])
+            dest_index = -1
 
             for vout in tx.get_outputs():
                 d,index = vout
@@ -78,8 +84,24 @@ class Plugin(BasePlugin):
 
                     # TODO Extract logic, and check command: hashdragon may not be in this script
                     if lokad == unhexlify('d101d400'):
-                        i,hd = ops[6]
-                        txn_list.append(hd.hex())
+
+                        _, command = ops[2]
+                        command_as_int = int.from_bytes(command, 'big')
+                        if command_as_int == 209:
+                            i,hd = ops[6]
+                            j,dest_index = ops[4]
+                            dest_index = int.from_bytes(dest_index, 'big')
+                            txn_list.append(hd.hex())
+                        elif command_as_int == 210 and len(ops) <= 5:
+                            print("Command is wander", len(ops))
+                        elif command_as_int == 210 and len(ops) > 5:
+                            _, dest_index = ops[4]
+                            dest_index = int.from_bytes(dest_index, 'big')
+                            _, owner_vout = tx.get_outputs()[dest_index]
+                            if wallet.is_mine(owner_vout):
+                                # TODO Find original hashdragon from previous inputs
+                                txn_list.append('d400000000000000000000000000000000000000000000000000000000000000')
+
         return txn_list
 
     @hook

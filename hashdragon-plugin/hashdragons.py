@@ -114,7 +114,7 @@ class HashdragonDescriber:
                           self.describe_truth(hashdragon),
                           self.describe_magic(hashdragon)]))
         if virtues == '':
-            return 'Undescribable'
+            return 'Unremarkable'
         return virtues
 
 

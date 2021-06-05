@@ -63,7 +63,7 @@ class Plugin(BasePlugin):
         for window in self.electrumcash_qt_gui.windows:
             self.load_wallet(window.wallet, window)
 
-    def process_txn(self, tx, wallet):
+    def process_txn(self, tx, wallet,depth=0):
         dest_index = -1
 
         for vout in tx.get_outputs():
@@ -80,14 +80,24 @@ class Plugin(BasePlugin):
                     _, command = ops[2]
                     command_as_int = int.from_bytes(command, 'big')
                     if command_as_int == 209:
+                        # Command is hatch
                         i,hd = ops[6]
                         j,dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
+
+                        if depth == 0:
+                            self.main_window.hashdragons[hd.hex()] = tx.txid()
+                        else:
+                            # If we are higher up in the history, retrieve original txn id
+                            self.main_window.hashdragons[hs.hex()] = self.current_tx
                         return hd.hex()
                     elif command_as_int == 210 and len(ops) <= 5:
+                        # Command is wander
                         _, dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
                         owner_vout, _ = tx.get_outputs()[dest_index]
+
+                        # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
                             _, input_index = ops[3]
                             input_index = int.from_bytes(input_index, 'big')
@@ -96,14 +106,22 @@ class Plugin(BasePlugin):
 
                             if not ok:
                                 print("Could not retrieve transaction.") # TODO handle error
+                                return None
                             else:
-                                # TODO Find original hashdragon from previous inputs
-                                return 'd400000000000000000000000000000000000000000000000000000000000000'
+                                tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
+                                return self.process_txn(tx0, wallet, depth+1)
                     elif command_as_int == 210 and len(ops) > 5:
+                        # Command is a rescue.
                         _, dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
                         owner_vout, _ = tx.get_outputs()[dest_index]
+
+                        # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
+
+                            if depth == 0:
+                                self.current_tx = tx.txid()
+
                             _, input_index = ops[3]
                             _, txn_ref = ops[5]
                             print(hexlify(txn_ref).decode())
@@ -113,10 +131,33 @@ class Plugin(BasePlugin):
                             ok, r = wallet.network.get_raw_tx_for_txid(hexlify(txn_ref).decode(), timeout=10.0)
                             if not ok:
                                 print("Could not retrieve transaction.") # TODO handle error
+                                return None
+                            else:
+                                # Recursively call process_txn to find hashdragon.
+                                tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
+                                return self.process_txn(tx0, wallet, depth+1)
+                    elif command_as_int == 211:
+                        # Command is hibernate
+                        dest_index = int.from_bytes(dest_index, 'big')
+                        owner_vout, _ = tx.get_outputs()[dest_index]
+
+                        # Only look into this hashdragon if we are the owner.
+                        if wallet.is_mine(owner_vout):
+
+                            if depth == 0:
+                                self.current_tx = tx.txid()
+
+                            _, input_index = ops[3]
+                            input_index = int.from_bytes(input_index, 'big')
+                            owner_vin = tx.inputs()[input_index]
+                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin.prevout_hash, timeout=10.0)
+
+                            if not ok:
+                                print("Could not retrieve transaction.") # TODO handle error
+                                return None
                             else:
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
-                                return self.process_txn(tx0, wallet)
-
+                                return self.process_txn(tx0, wallet,depth+1)
 
     def extract_hashdragons(self, wallet, coins):
         '''
@@ -124,6 +165,7 @@ class Plugin(BasePlugin):
         in the wallet.
         '''
         txn_list = []
+        self.main_window.hashdragons = dict()
 
         for coin in coins:
             tx = wallet.transactions.get(coin['prevout_hash'])
@@ -131,6 +173,7 @@ class Plugin(BasePlugin):
             if val != None:
                 txn_list.append(val)
 
+        txn_list.sort()
         return txn_list
 
     @hook
@@ -139,6 +182,7 @@ class Plugin(BasePlugin):
         Hook called when a wallet is loaded and a window opened for it.
         """
         wallet_name = window.wallet.basename()
+        self.main_window = window
         self.wallet_windows[wallet_name] = window
         self.add_ui_for_wallet(wallet_name, window)
         self.refresh_ui_for_wallet(wallet_name)

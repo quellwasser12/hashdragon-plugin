@@ -11,7 +11,9 @@ from binascii import unhexlify,hexlify
 
 from .hashdragons import HashdragonDescriber
 from .event import Event
+from .transactions import *
 
+# Class that handles the Wander dialog.
 
 class WanderDialog(QDialog, PrintError):
 
@@ -78,7 +80,7 @@ class WanderDialog(QDialog, PrintError):
                         # If output_index far too big, we are probably dealing with Little Endian
                         if (output_index) >= 16777216:
                             output_index = int.from_bytes(o, 'little')
-                        print("OUtput index = ", output_index)
+                        print("Output index = ", output_index)
 
 
         inputs = []
@@ -110,7 +112,7 @@ class WanderDialog(QDialog, PrintError):
             self.main_window.show_message("Not enough coins for transfer.")
             return
 
-#        inputs.append(spendable_coins[0])
+        inputs.append(spendable_coins[0])
 
         dest_address = self.wander_to.text() if self.wander_to.text() != '' else  None
         if dest_address is None:
@@ -133,20 +135,20 @@ class WanderDialog(QDialog, PrintError):
         print("Fee: ", inputs[0]['value'])
         # Use value of hashdragon input as fee.
         # Fee will be added later when solving disappearing input coin issue
-        unsigned_tx = self.main_window.wallet.make_unsigned_transaction(inputs, outputs, self.main_window.config, inputs[0]['value'])
+        unsigned_tx = make_unsigned_transaction(self.main_window.wallet, inputs, outputs, self.main_window.config, inputs[0]['value'])
 
         # This is a massive kludge
         # coinchooser keeps removing input coin used to pay for the fee.
         # Therefore we create a separate transaction with the specific coin as an input,
         # so its fields can be set correctly, and add it back to the other tx once done.
         # We also copy the output to make sure we don't lose money in the process, and include the correct change.
-        dummy_tx_to_create_input = self.main_window.wallet.make_unsigned_transaction([spendable_coins[0]], outputs, self.main_window.config, fee, change_addresses[-1])
+        # dummy_tx_to_create_input = self.main_window.wallet.make_unsigned_transaction([spendable_coins[0]], outputs, self.main_window.config, fee, change_addresses[-1])
 
-        unsigned_tx.add_inputs(dummy_tx_to_create_input.inputs())
-        unsigned_tx.add_outputs([dummy_tx_to_create_input.outputs()[-1]])
+        # unsigned_tx.add_inputs(dummy_tx_to_create_input.inputs())
+        # unsigned_tx.add_outputs([dummy_tx_to_create_input.outputs()[-1]])
 
-        print(unsigned_tx)
-        print(unsigned_tx.inputs())
+        print("Unsigned tx: ", unsigned_tx)
+        print("Inputs: ", unsigned_tx.inputs())
 
 
         self.result = QDialog.Accepted

@@ -124,7 +124,7 @@ class Plugin(BasePlugin):
 
                             _, input_index = ops[3]
                             _, txn_ref = ops[5]
-                            print(hexlify(txn_ref).decode())
+                            #print(hexlify(txn_ref).decode())
 
                             input_index = int.from_bytes(input_index, 'big')
 

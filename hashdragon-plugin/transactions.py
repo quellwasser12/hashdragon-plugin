@@ -1,13 +1,16 @@
 from electroncash.address import Script, Address, ScriptOutput
 from electroncash.coinchooser import CoinChooserPrivacy
 from electroncash.plugins import run_hook
+from electroncash.util import ExcessiveFee
+
+from .slp_coinchooser import SlpCoinChooser
 
 
 # Copied from Abstract_Wallet in Electron Cash
 # This is to get around the fact that CoinChooser removes input.
 def make_unsigned_transaction(wallet, inputs, outputs,
                               config,
-                              fixed_fee=None, change_addr=None, sign_schnorr=None):
+                              fixed_fee=None, change_addr=None, sign_schnorr=None, mandatory_coins=[]):
     '''
     sign_schnorr flag controls whether to mark the tx as signing with
         schnorr or not. Specify either a bool, or set the flag to 'None' to use
@@ -31,6 +34,9 @@ def make_unsigned_transaction(wallet, inputs, outputs,
         raise BaseException('Dynamic fee estimates not available')
 
     for item in inputs:
+        wallet.add_input_info(item)
+
+    for item in mandatory_coins:
         wallet.add_input_info(item)
 
     # Fee estimator
@@ -87,11 +93,14 @@ def make_unsigned_transaction(wallet, inputs, outputs,
 
         assert all(isinstance(addr, Address) for addr in change_addrs)
 
-        coin_chooser = CoinChooserPrivacy()
+        coin_chooser = SlpCoinChooser()
         tx = coin_chooser.make_tx(inputs, outputs, change_addrs,
-                                  fee_estimator, wallet.dust_threshold(), sign_schnorr=sign_schnorr)
+                                  fee_estimator, wallet.dust_threshold(),
+                                  sign_schnorr=sign_schnorr,
+                                  mandatory_coins=mandatory_coins)
+
     else:
-        sendable = sum(map(lambda x:x['value'], inputs))
+        sendable = sum(map(lambda x:x['value'], inputs + mandatory_coins))
         _type, data, value = outputs[i_max]
         outputs[i_max] = (_type, data, 0)
         tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
@@ -110,7 +119,9 @@ def make_unsigned_transaction(wallet, inputs, outputs,
         raise ExcessiveFee()
 
     # Sort the inputs and outputs deterministically
-    tx.BIP_LI01_sort()
+    ## FIXME: Find a way to support BIP LI01
+    ##    https://github.com/kristovatlas/rfc/blob/master/bips/bip-li01.mediawiki
+    #tx.BIP_LI01_sort()
     # Timelock tx to current height.
     locktime = wallet.get_local_height()
     if locktime == -1: # We have no local height data (no headers synced).

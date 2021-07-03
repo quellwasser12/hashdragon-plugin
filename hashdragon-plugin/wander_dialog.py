@@ -6,6 +6,7 @@ from electroncash import Transaction
 from electroncash.util import PrintError
 from electroncash.address import Address, ScriptOutput, Script
 from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
+from electroncash_gui.qt.paytoedit import PayToEdit
 
 from binascii import unhexlify,hexlify
 
@@ -37,9 +38,13 @@ class WanderDialog(QDialog, PrintError):
         self.layout.setColumnStretch(1, 4)
         self.layout.setColumnStretch(2, 4)
 
-        self.layout.addWidget(QLabel("Wander to"), 0, 0)
+        wandertolabel = QLabel("Wander to")
+
+        self.layout.addWidget(wandertolabel, 0, 0)
 
         self.wander_to = QLineEdit()
+        #self.wander_to = PayToEdit(self.main_window)
+        wandertolabel.setBuddy(self.wander_to)
         self.layout.addWidget(self.wander_to, 0, 1)
 
         self.layout.addWidget(self.buttonBox)
@@ -64,6 +69,7 @@ class WanderDialog(QDialog, PrintError):
 
         if not ok:
             print("BlahBlah")
+            return False
         else:
             tx = Transaction(r, sign_schnorr=self.main_window.wallet.is_schnorr_enabled())
             for vout in tx.get_outputs():
@@ -84,7 +90,7 @@ class WanderDialog(QDialog, PrintError):
         inputs = []
         hashdragon_coin = None
 
-        # First entry is the vout of the previous valid tx
+        # First input is the vout of the previous valid tx
         for coin in coins:
             if coin['prevout_hash'] == current_txn_ref and coin['prevout_n'] == output_index:
                 hashdragon_coin = coin
@@ -109,14 +115,14 @@ class WanderDialog(QDialog, PrintError):
 
         if len(spendable_coins) <= 0:
             self.main_window.show_message("Not enough coins for transfer.")
-            return
+            return False
 
         inputs.append(spendable_coins[0])
 
         dest_address = self.wander_to.text() if self.wander_to.text() != '' else  None
         if dest_address is None:
             self.main_window.show_message("Invalid destination address.")
-            return
+            return False
 
         outputs = []
         event = Event()
@@ -125,7 +131,7 @@ class WanderDialog(QDialog, PrintError):
         outputs.append((TYPE_SCRIPT, op_return_script, 0))
 
         addr = self.parse_address(dest_address)
-        outputs.append((TYPE_ADDRESS, addr, 0))
+        outputs.append((TYPE_ADDRESS, addr, 546)) # min required dust is 546 sat
 
         change_addresses = list(self.main_window.wallet.get_change_addresses())
         fee = 0
@@ -138,12 +144,21 @@ class WanderDialog(QDialog, PrintError):
                                                 self.main_window.config,
                                                 mandatory_coins=[hashdragon_coin])
 
-        print("Unsigned tx: ", tx)
+        # print("Unsigned tx: ", tx)
         run_hook('sign_tx', self.main_window.wallet, tx)
 
         ## FIXME: Support password!!!
         self.main_window.wallet.sign_transaction(tx, None)
-        print("Signed tx: ", tx)
+        # print("Signed tx: ", tx)
 
         self.result = QDialog.Accepted
-        self.main_window.show_transaction(tx, None)
+
+        ## Uncomment this to show transaction in popup for debug.
+        #self.main_window.show_transaction(tx, None)
+
+        status, msg = self.main_window.network.broadcast_transaction(tx)
+        print("Status: ", status)
+        print("msg: ", msg)
+
+        self.close()
+        return True

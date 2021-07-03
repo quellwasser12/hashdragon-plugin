@@ -89,7 +89,7 @@ class Plugin(BasePlugin):
                             self.main_window.hashdragons[hd.hex()] = tx.txid()
                         else:
                             # If we are higher up in the history, retrieve original txn id
-                            self.main_window.hashdragons[hs.hex()] = self.current_tx
+                            self.main_window.hashdragons[hd.hex()] = self.current_tx
                         return hd.hex()
                     elif command_as_int == 210 and len(ops) <= 5:
                         # Command is wander
@@ -102,7 +102,10 @@ class Plugin(BasePlugin):
                             _, input_index = ops[3]
                             input_index = int.from_bytes(input_index, 'big')
                             owner_vin = tx.inputs()[input_index]
-                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin.prevout_hash, timeout=10.0)
+                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin['prevout_hash'], timeout=10.0)
+
+                            if depth == 0:
+                                self.current_tx = tx.txid()
 
                             if not ok:
                                 print("Could not retrieve transaction.") # TODO handle error

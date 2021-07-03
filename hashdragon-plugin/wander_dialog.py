@@ -68,6 +68,7 @@ class WanderDialog(QDialog, PrintError):
         output_index = -1
 
         if not ok:
+            # FIXME Handle error properly.
             print("BlahBlah")
             return False
         else:
@@ -144,12 +145,9 @@ class WanderDialog(QDialog, PrintError):
                                                 self.main_window.config,
                                                 mandatory_coins=[hashdragon_coin])
 
-        # print("Unsigned tx: ", tx)
         run_hook('sign_tx', self.main_window.wallet, tx)
 
-        ## FIXME: Support password!!!
         self.main_window.wallet.sign_transaction(tx, None)
-        # print("Signed tx: ", tx)
 
         self.result = QDialog.Accepted
 
@@ -159,6 +157,9 @@ class WanderDialog(QDialog, PrintError):
         status, msg = self.main_window.network.broadcast_transaction(tx)
         print("Status: ", status)
         print("msg: ", msg)
+
+        # TODO Display confirmation message
+        # TODO Reload hashdragon list in the main window.
 
         self.close()
         return True

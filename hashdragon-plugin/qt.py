@@ -22,6 +22,8 @@ class Plugin(BasePlugin):
         self.wallet_payment_tabs = {}
         self.wallet_payment_lists = {}
         self.current_tx = None
+        self.current_state = None
+        self.hashdragon_state = dict()
 
     def fullname(self):
         return 'Hashdragon Plugin'
@@ -34,7 +36,6 @@ class Plugin(BasePlugin):
             version = float(electroncash.version.PACKAGE_VERSION)
             self.is_version_compatible = version >= MINIMUM_ELECTRON_CASH_VERSION
         return True
-
 
     def on_close(self):
         """
@@ -86,15 +87,14 @@ class Plugin(BasePlugin):
                     if command_as_int == 209:
                         # Command is hatch
                         i, hd = ops[6]
-                        j, dest_index = ops[4]
-                        dest_index = int.from_bytes(dest_index, 'big')
 
                         if depth == 0:
                             self.main_window.hashdragons[hd.hex()] = tx.txid()
+                            self.current_state = 'Hatched'
                         else:
                             # If we are higher up in the history, retrieve original txn id
                             self.main_window.hashdragons[hd.hex()] = self.current_tx
-                        return hd.hex()
+                        return [hd.hex(), self.current_state]
 
                     # 210, d2, 5 args, wander
                     elif command_as_int == 210 and len(ops) <= 5:
@@ -102,7 +102,6 @@ class Plugin(BasePlugin):
                         _, dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
                         owner_vout, _ = tx.get_outputs()[dest_index]
-                        print("Processing transaction: ", tx.txid())
 
                         # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
@@ -113,13 +112,13 @@ class Plugin(BasePlugin):
 
                             if depth == 0:
                                 self.current_tx = tx.txid()
+                                self.current_state = 'Wandering'
 
                             if not ok:
                                 print("Could not retrieve transaction.") # TODO handle error
                                 return None
                             else:
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
-                                print("Look at parent: ", tx0.txid())
                                 return self.process_txn(tx0, wallet, depth+1)
 
                     # 210, d2, 6 args, rescue command
@@ -134,12 +133,10 @@ class Plugin(BasePlugin):
 
                             if depth == 0:
                                 self.current_tx = tx.txid()
+                                self.current_state = 'Rescued'
 
                             _, input_index = ops[3]
                             _, txn_ref = ops[5]
-                            #print(hexlify(txn_ref).decode())
-
-                            input_index = int.from_bytes(input_index, 'big')
 
                             ok, r = wallet.network.get_raw_tx_for_txid(hexlify(txn_ref).decode(), timeout=10.0)
                             if not ok:
@@ -153,6 +150,7 @@ class Plugin(BasePlugin):
                     # 211, d3, hibernate
                     elif command_as_int == 211:
                         # Command is hibernate
+                        _, dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
                         owner_vout, _ = tx.get_outputs()[dest_index]
 
@@ -161,6 +159,7 @@ class Plugin(BasePlugin):
 
                             if depth == 0:
                                 self.current_tx = tx.txid()
+                                self.current_state = 'Hibernating'
 
                             _, input_index = ops[3]
                             input_index = int.from_bytes(input_index, 'big')
@@ -187,8 +186,11 @@ class Plugin(BasePlugin):
             val = self.process_txn(tx, wallet)
 
             # Add val if not in list already (multiple coins can be issued from the same txn)
-            if val is not None and val not in txn_list:
-                txn_list.append(val)
+            if val is not None:
+                hd, state = val
+                if hd not in txn_list:
+                    txn_list.append(hd)
+                    self.hashdragon_state[hd] = state
 
         txn_list.sort()
         return txn_list
@@ -214,10 +216,11 @@ class Plugin(BasePlugin):
             hd_item = QTreeWidgetItem(ui)
             h = Hashdragon.from_hex_string(hd)
             hd_item.setData(0, 0, h.hashdragon())
-            hd_item.setData(1, 0, describer.describe(h))
-            hd_item.setData(2, 0, h.strength())
+            hd_item.setData(1, 0, self.hashdragon_state[h.hashdragon()])
+            hd_item.setData(2, 0, describer.describe(h))
+            hd_item.setData(3, 0, h.strength())
             r, g, b = h.colour_as_rgb()
-            hd_item.setBackground(3, QBrush(QColor(r, g, b)))
+            hd_item.setBackground(4, QBrush(QColor(r, g, b)))
             ui.addChild(hd_item)
 
 

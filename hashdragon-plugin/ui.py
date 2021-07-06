@@ -14,6 +14,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
     def __init__(self, parent, plugin, wallet_name):
         MyTreeWidget.__init__(self, parent, self.create_menu, [
             _('Hashdragon'),
+            _('State'),
             _('Description'),
             _('Strength'),
             _('Colour'),

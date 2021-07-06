@@ -137,9 +137,6 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
         addr = self.parse_address(dest_address)
         outputs.append((TYPE_ADDRESS, addr, 546)) # min required dust is 546 sat
 
-        change_addresses = list(self.main_window.wallet.get_change_addresses())
-        fee = 0
-
         # Use value of hashdragon input as fee.
         # Fee will be added later when solving disappearing input coin issue
         tx = make_unsigned_transaction(self.main_window.wallet,

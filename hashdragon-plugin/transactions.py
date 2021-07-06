@@ -1,5 +1,4 @@
 from electroncash.address import Script, Address, ScriptOutput
-from electroncash.coinchooser import CoinChooserPrivacy
 from electroncash.plugins import run_hook
 from electroncash.util import ExcessiveFee, NotEnoughFunds
 
@@ -23,7 +22,7 @@ def make_unsigned_transaction(wallet, inputs, outputs,
         _type, data, value = o
         if value == '!':
             if i_max is not None:
-                raise BaseException("More than one output set to spend max")
+                raise Exception("More than one output set to spend max")
             i_max = i
 
     # Avoid index-out-of-range with inputs[0] below
@@ -31,7 +30,7 @@ def make_unsigned_transaction(wallet, inputs, outputs,
         raise NotEnoughFunds()
 
     if fixed_fee is None and config.fee_per_kb() is None:
-        raise BaseException('Dynamic fee estimates not available')
+        raise Exception('Dynamic fee estimates not available')
 
     for item in inputs:
         wallet.add_input_info(item)

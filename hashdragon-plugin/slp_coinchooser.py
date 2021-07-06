@@ -1,13 +1,14 @@
 from electroncash.transaction import Transaction
 from electroncash.coinchooser import CoinChooserPrivacy, PRNG
 
+
 class SlpCoinChooser(CoinChooserPrivacy):
     def make_tx(self, coins, outputs, change_addrs, fee_estimator,
                 dust_threshold, sign_schnorr=False, *, mandatory_coins=[]):
-        '''Select unspent coins to spend to pay outputs.  If the change is
+        """Select unspent coins to spend to pay outputs.  If the change is
         greater than dust_threshold (after adding the change output to
         the transaction) it is kept, otherwise none is sent and it is
-        added to the transaction fee.'''
+        added to the transaction fee."""
 
         # Remove mandatory_coin items from coin chooser's list
         for c in mandatory_coins:
@@ -26,8 +27,8 @@ class SlpCoinChooser(CoinChooserPrivacy):
         spent_amount = tx.output_value()
 
         def sufficient_funds(buckets):
-            '''Given a list of buckets, return True if it has enough
-            value to pay for the transaction'''
+            """Given a list of buckets, return True if it has enough
+            value to pay for the transaction"""
             mandatory_coins_bucket = self.bucketize_coins(mandatory_coins, sign_schnorr=sign_schnorr)
             mandatory_input = sum(coin.value for coin in mandatory_coins_bucket)
             mandatory_input_size = sum(coin.size for coin in mandatory_coins_bucket)

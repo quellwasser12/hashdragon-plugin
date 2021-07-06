@@ -7,16 +7,17 @@ from electroncash.util import PrintError
 from electroncash.address import Address, ScriptOutput, Script
 from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
 from electroncash_gui.qt.paytoedit import PayToEdit
+from electroncash_gui.qt.util import MessageBoxMixin
 
-from binascii import unhexlify,hexlify
+from binascii import unhexlify
 
 from .hashdragons import HashdragonDescriber
 from .event import Event
 from .transactions import *
 
-# Class that handles the Wander dialog.
 
-class WanderDialog(QDialog, PrintError):
+# Class that handles the Wander dialog.
+class WanderDialog(QDialog, MessageBoxMixin, PrintError):
 
     def __init__(self, hashdragon, parent):
         QDialog.__init__(self, parent)
@@ -49,8 +50,10 @@ class WanderDialog(QDialog, PrintError):
 
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
+        self.result = None
 
-    def parse_address(self, address):
+    @staticmethod
+    def parse_address(address):
         # if networks.net.SLPADDR_PREFIX not in address:
         #     address = networks.net.SLPADDR_PREFIX + ":" + address
         return Address.from_string(address)
@@ -84,7 +87,7 @@ class WanderDialog(QDialog, PrintError):
                         _, o = ops[4]
                         output_index = int.from_bytes(o, 'big')
                         # If output_index far too big, we are probably dealing with Little Endian
-                        if (output_index) >= 16777216:
+                        if output_index >= 16777216:
                             output_index = int.from_bytes(o, 'little')
 
 
@@ -148,7 +151,6 @@ class WanderDialog(QDialog, PrintError):
         run_hook('sign_tx', self.main_window.wallet, tx)
 
         self.main_window.wallet.sign_transaction(tx, None)
-
         self.result = QDialog.Accepted
 
         ## Uncomment this to show transaction in popup for debug.

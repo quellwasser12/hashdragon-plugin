@@ -1,7 +1,7 @@
 from electroncash.address import Script, Address, ScriptOutput
 from electroncash.coinchooser import CoinChooserPrivacy
 from electroncash.plugins import run_hook
-from electroncash.util import ExcessiveFee
+from electroncash.util import ExcessiveFee, NotEnoughFunds
 
 from .slp_coinchooser import SlpCoinChooser
 
@@ -115,7 +115,7 @@ def make_unsigned_transaction(wallet, inputs, outputs,
     fee_in_satoshis = tx.get_fee()
     sats_per_byte = fee_in_satoshis/tx_in_bytes
 
-    if (sats_per_byte > 50):
+    if sats_per_byte > 50:
         raise ExcessiveFee()
 
     # Sort the inputs and outputs deterministically

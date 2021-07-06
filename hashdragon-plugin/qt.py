@@ -9,6 +9,7 @@ from electroncash.address import Script, Address, ScriptOutput
 from binascii import unhexlify,hexlify
 from .hashdragons import Hashdragon, HashdragonDescriber
 
+
 class Plugin(BasePlugin):
     electrumcash_qt_gui = None
     # There's no real user-friendly way to enforce this.  So for now, we just calculate it, and ignore it.
@@ -20,6 +21,7 @@ class Plugin(BasePlugin):
         self.wallet_windows = {}
         self.wallet_payment_tabs = {}
         self.wallet_payment_lists = {}
+        self.current_tx = None
 
     def fullname(self):
         return 'Hashdragon Plugin'
@@ -63,26 +65,28 @@ class Plugin(BasePlugin):
         for window in self.electrumcash_qt_gui.windows:
             self.load_wallet(window.wallet, window)
 
-    def process_txn(self, tx, wallet,depth=0):
+    def process_txn(self, tx, wallet, depth=0):
         dest_index = -1
 
         for vout in tx.get_outputs():
-            d,index = vout
+            d, index = vout
 
             if isinstance(d, ScriptOutput) and d.is_opreturn():
                 script = d.to_script()
                 ops = Script.get_ops(script)
-                i,lokad = ops[1]
+                i, lokad = ops[1]
 
                 # TODO Extract logic, and check command: hashdragon may not be in this script
                 if lokad == unhexlify('d101d400'):
 
                     _, command = ops[2]
                     command_as_int = int.from_bytes(command, 'big')
+
+                    # 209, d1, hatch
                     if command_as_int == 209:
                         # Command is hatch
-                        i,hd = ops[6]
-                        j,dest_index = ops[4]
+                        i, hd = ops[6]
+                        j, dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
 
                         if depth == 0:
@@ -91,11 +95,14 @@ class Plugin(BasePlugin):
                             # If we are higher up in the history, retrieve original txn id
                             self.main_window.hashdragons[hd.hex()] = self.current_tx
                         return hd.hex()
+
+                    # 210, d2, 5 args, wander
                     elif command_as_int == 210 and len(ops) <= 5:
                         # Command is wander
                         _, dest_index = ops[4]
                         dest_index = int.from_bytes(dest_index, 'big')
                         owner_vout, _ = tx.get_outputs()[dest_index]
+                        print("Processing transaction: ", tx.txid())
 
                         # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
@@ -112,7 +119,10 @@ class Plugin(BasePlugin):
                                 return None
                             else:
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
+                                print("Look at parent: ", tx0.txid())
                                 return self.process_txn(tx0, wallet, depth+1)
+
+                    # 210, d2, 6 args, rescue command
                     elif command_as_int == 210 and len(ops) > 5:
                         # Command is a rescue.
                         _, dest_index = ops[4]
@@ -139,6 +149,8 @@ class Plugin(BasePlugin):
                                 # Recursively call process_txn to find hashdragon.
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
                                 return self.process_txn(tx0, wallet, depth+1)
+
+                    # 211, d3, hibernate
                     elif command_as_int == 211:
                         # Command is hibernate
                         dest_index = int.from_bytes(dest_index, 'big')
@@ -160,20 +172,22 @@ class Plugin(BasePlugin):
                                 return None
                             else:
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
-                                return self.process_txn(tx0, wallet,depth+1)
+                                return self.process_txn(tx0, wallet, depth+1)
 
     def extract_hashdragons(self, wallet, coins):
-        '''
+        """
         Extracts all the hashdragons in the wallet by going through all the transactions
         in the wallet.
-        '''
+        """
         txn_list = []
         self.main_window.hashdragons = dict()
 
         for coin in coins:
             tx = wallet.transactions.get(coin['prevout_hash'])
             val = self.process_txn(tx, wallet)
-            if val != None:
+
+            # Add val if not in list already (multiple coins can be issued from the same txn)
+            if val is not None and val not in txn_list:
                 txn_list.append(val)
 
         txn_list.sort()

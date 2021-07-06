@@ -6,11 +6,11 @@ class HashdragonDescriber:
 
     def describe_inner_light(self, hashdragon):
         inner_light = hashdragon.inner_light()
-        if inner_light >= 0 and inner_light < 20:
+        if 0 <= inner_light < 20:
             return 'Ignorant'
-        elif inner_light >= 201 and inner_light < 240:
+        elif 201 <= inner_light < 240:
             return 'Intelligent'
-        elif inner_light >= 240 and inner_light < 255:
+        elif 240 <= inner_light < 255:
             return 'Enlightened'
         elif inner_light == 255:
             return 'Genius'
@@ -21,13 +21,13 @@ class HashdragonDescriber:
         presence = hashdragon.presence()
         if presence == 0:
             return 'Invisible'
-        elif presence >= 1 and presence < 10:
+        elif 1 <= presence < 10:
             return 'Ghost'
-        elif presence >= 10 and presence < 40:
+        elif 10 <= presence < 40:
             return 'Shadow'
-        elif presence >= 40 and presence < 60:
+        elif 40 <= presence < 60:
             return 'Shimmering'
-        elif presence > 230 and presence < 255:
+        elif 230 < presence < 255:
             return 'Rock'
         elif presence == 255:
             return 'Marble'
@@ -39,11 +39,11 @@ class HashdragonDescriber:
         charm = hashdragon.charm()
         if charm < 5:
             return 'Brutal'
-        elif charm >= 5 and charm < 15:
+        elif 5 <= charm < 15:
             return 'Unfriendly'
-        elif charm > 190 and charm <= 230:
+        elif 190 < charm <= 230:
             return 'Friendly'
-        elif charm > 230 and charm <= 250:
+        elif 230 < charm <= 250:
             return 'Charming'
         elif charm > 250:
             return 'Charismatic'
@@ -54,7 +54,7 @@ class HashdragonDescriber:
         strangeness = hashdragon.strangeness()
         if strangeness < 10:
             return 'Practical'
-        elif strangeness > 200 and strangeness <= 240:
+        elif 200 < strangeness <= 240:
             return 'Strange'
         elif strangeness > 240:
             return 'Weird'
@@ -66,11 +66,11 @@ class HashdragonDescriber:
         beauty = hashdragon.beauty()
         if beauty < 10:
             return 'Ugly'
-        elif beauty >= 10 and beauty < 20:
+        elif 10 <= beauty < 20:
             return 'Unattractive'
-        elif beauty > 200 and beauty <= 230:
+        elif 200 < beauty <= 230:
             return 'Attractive'
-        elif beauty > 230 and beauty <= 250:
+        elif 230 < beauty <= 250:
             return 'Beautiful'
         elif beauty > 250:
             return 'Exquisite'
@@ -81,9 +81,9 @@ class HashdragonDescriber:
         truth = hashdragon.truth()
         if truth < 5:
             return 'Lying'
-        elif truth >= 5 and truth < 20:
+        elif 5 <= truth < 20:
             return 'Dishonest'
-        elif truth > 220 and truth <= 250:
+        elif 220 < truth <= 250:
             return 'Honest'
         elif truth > 250:
             return 'Oracular'
@@ -94,9 +94,9 @@ class HashdragonDescriber:
         magic = hashdragon.magic()
         if magic < 20:
             return 'Clumsy'
-        elif magic > 210 and magic <= 250:
+        elif 210 < magic <= 250:
             return 'Magical'
-        elif magic > 250 and magic < 255:
+        elif 250 < magic < 255:
             return 'Legendary'
         elif magic == 255:
             return 'Mythical'

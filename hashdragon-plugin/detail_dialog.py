@@ -6,6 +6,7 @@ from electroncash.util import PrintError
 
 from .hashdragons import HashdragonDescriber
 
+
 class DetailDialog(QDialog, PrintError):
 
     def __init__(self, hashdragon, parent):
@@ -41,37 +42,37 @@ class DetailDialog(QDialog, PrintError):
 
         self.layout.addWidget(QLabel('Inner Light: '), 3, 0)
         self.inner_light = hashdragon.inner_light()
-        inner_light_value = round(self.inner_light*100.0/200.0, 1)
+        inner_light_value = round(self.inner_light * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{inner_light_value}%'), 3, 1)
 
         self.layout.addWidget(QLabel('Presence: '), 4, 0)
         self.presence = hashdragon.presence()
-        presence_value = round(self.presence*100.0/200.0, 1)
+        presence_value = round(self.presence * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{presence_value}%'), 4, 1)
 
         self.layout.addWidget(QLabel('Charm: '), 5, 0)
         self.charm = hashdragon.charm()
-        charm_value = round(self.charm*100.0/200.0, 1)
+        charm_value = round(self.charm * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{charm_value}%'), 5, 1)
 
         self.layout.addWidget(QLabel('Strangeness: '), 6, 0)
         self.strangeness = hashdragon.strangeness()
-        strangeness_value = round(self.strangeness*100.0/200.0, 1)
+        strangeness_value = round(self.strangeness * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{strangeness_value}%'), 6, 1)
 
         self.layout.addWidget(QLabel('Beauty: '), 7, 0)
         self.beauty = hashdragon.beauty()
-        beauty_value = round(self.beauty*100.0/200.0, 1)
+        beauty_value = round(self.beauty * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{beauty_value}%'), 7, 1)
 
         self.layout.addWidget(QLabel('Truth: '), 8, 0)
         self.truth = hashdragon.truth()
-        truth_value = round(self.truth*100.0/200.0, 1)
+        truth_value = round(self.truth * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{truth_value}%'), 8, 1)
 
         self.layout.addWidget(QLabel('Magic: '), 9, 0)
         self.magic = hashdragon.magic()
-        magic_value = round(self.magic*100.0/200.0, 1)
+        magic_value = round(self.magic * 100.0 / 200.0, 1)
         self.layout.addWidget(QLabel(f'{magic_value}%'), 9, 1)
 
         self.layout.addWidget(QLabel('Special Powers: '), 10, 0)
@@ -97,7 +98,6 @@ class DetailDialog(QDialog, PrintError):
         self.layout.addWidget(QLabel('Sigil: '), 15, 0)
         self.sigil = hashdragon.sigil_unicode()
         self.layout.addWidget(QLabel(f'{self.sigil}'), 15, 1)
-
 
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)

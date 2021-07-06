@@ -200,7 +200,7 @@ class Plugin(BasePlugin):
         """
         Hook called when a wallet is loaded and a window opened for it.
         """
-        wallet_name = window.wallet.basename()
+        wallet_name = wallet.basename()
         self.main_window = window
         self.wallet_windows[wallet_name] = window
         self.add_ui_for_wallet(wallet_name, window)

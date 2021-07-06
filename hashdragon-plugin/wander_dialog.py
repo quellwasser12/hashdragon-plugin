@@ -27,8 +27,6 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
         self.setMinimumWidth(750)
         self.setWindowTitle("Wander")
 
-        describer = HashdragonDescriber()
-
         QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
         self.buttonBox = QDialogButtonBox(QBtn)
@@ -44,9 +42,15 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
         self.layout.addWidget(wandertolabel, 0, 0)
 
         self.wander_to = QLineEdit()
-        #self.wander_to = PayToEdit(self.main_window)
+        # self.wander_to = PayToEdit(self.main_window)
         wandertolabel.setBuddy(self.wander_to)
         self.layout.addWidget(self.wander_to, 0, 1)
+
+        # self.completions = QStringListModel()
+        # completer = QCompleter(self.wander_to)
+        # completer.setCaseSensitivity(False)
+        # self.wander_to.setCompleter(completer)
+        # completer.setModel(self.completions)
 
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
@@ -154,10 +158,12 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
         #self.main_window.show_transaction(tx, None)
 
         status, msg = self.main_window.network.broadcast_transaction(tx)
-        print("Status: ", status)
-        print("msg: ", msg)
+        if status:
+            self.show_message('Hashdragon request wander has been successfully submitted.')
+            self.main_window.update_wallet()
+        else:
+            self.show_error('Error requesting hashdragon to wander:\n' + msg)
 
-        # TODO Display confirmation message
         # TODO Reload hashdragon list in the main window.
 
         self.close()

@@ -164,7 +164,7 @@ class Plugin(BasePlugin):
                             _, input_index = ops[3]
                             input_index = int.from_bytes(input_index, 'big')
                             owner_vin = tx.inputs()[input_index]
-                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin.prevout_hash, timeout=10.0)
+                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin['prevout_hash'], timeout=10.0)
 
                             if not ok:
                                 print("Could not retrieve transaction.") # TODO handle error

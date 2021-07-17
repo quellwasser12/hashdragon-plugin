@@ -11,14 +11,13 @@ from electroncash_gui.qt.util import MessageBoxMixin
 
 from binascii import unhexlify
 
-from .hashdragons import HashdragonDescriber
 from .event import Event
 from .transactions import *
 
 
-# Class that handles the Wander dialog.
+# Class that handles the Hibernate dialog.
 # FIXME HibernateDialog and WanderDialog are copies, need to remove code duplication.
-class WanderDialog(QDialog, MessageBoxMixin, PrintError):
+class HibernateDialog(QDialog, MessageBoxMixin, PrintError):
 
     def __init__(self, hashdragon, parent):
         QDialog.__init__(self, parent)
@@ -26,31 +25,31 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
         self.hashdragon = hashdragon
 
         self.setMinimumWidth(750)
-        self.setWindowTitle("Wander")
+        self.setWindowTitle("Hibernate")
 
         QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 
         self.buttonBox = QDialogButtonBox(QBtn)
-        self.buttonBox.accepted.connect(self.create_wander)
+        self.buttonBox.accepted.connect(self.create_hibernate)
         self.buttonBox.rejected.connect(self.reject)
 
         self.layout = QGridLayout()
         self.layout.setColumnStretch(1, 4)
         self.layout.setColumnStretch(2, 4)
 
-        wandertolabel = QLabel("Wander to")
+        hibernatetolabel = QLabel("Hibernate to")
 
-        self.layout.addWidget(wandertolabel, 0, 0)
+        self.layout.addWidget(hibernatetolabel, 0, 0)
 
-        self.wander_to = QLineEdit()
-        # self.wander_to = PayToEdit(self.main_window)
-        wandertolabel.setBuddy(self.wander_to)
-        self.layout.addWidget(self.wander_to, 0, 1)
+        self.hibernate_to = QLineEdit()
+        # self.hibernate_to = PayToEdit(self.main_window)
+        hibernatetolabel.setBuddy(self.hibernate_to)
+        self.layout.addWidget(self.hibernate_to, 0, 1)
 
         # self.completions = QStringListModel()
-        # completer = QCompleter(self.wander_to)
+        # completer = QCompleter(self.hibernate_to)
         # completer.setCaseSensitivity(False)
-        # self.wander_to.setCompleter(completer)
+        # self.hibernate_to.setCompleter(completer)
         # completer.setModel(self.completions)
 
         self.layout.addWidget(self.buttonBox)
@@ -59,11 +58,9 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
 
     @staticmethod
     def parse_address(address):
-        # if networks.net.SLPADDR_PREFIX not in address:
-        #     address = networks.net.SLPADDR_PREFIX + ":" + address
         return Address.from_string(address)
 
-    def create_wander(self):
+    def create_hibernate(self):
         coins = self.main_window.wallet.get_spendable_coins(None, self.main_window.config)
         fee = None
 
@@ -133,7 +130,7 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
 
         inputs.append(spendable_coins[0])
 
-        dest_address = self.wander_to.text() if self.wander_to.text() != '' else None
+        dest_address = self.hibernate_to.text() if self.hibernate_to.text() != '' else None
         if dest_address is None:
             self.main_window.show_message("Invalid destination address.")
             return False
@@ -141,7 +138,7 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
         outputs = []
         event = Event()
 
-        op_return_script = event.build_hashdragon_op_return('wander', 0, 1, dest_address)
+        op_return_script = event.build_hashdragon_op_return('hibernate', 0, 1, dest_address)
         outputs.append((TYPE_SCRIPT, op_return_script, 0))
 
         addr = self.parse_address(dest_address)
@@ -165,13 +162,13 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
 
         status, msg = self.main_window.network.broadcast_transaction(tx)
         if status:
-            self.show_message('Hashdragon request wander has been successfully submitted.')
+            self.show_message('Hashdragon request hibernate has been successfully submitted.')
             self.main_window.update_wallet()
 
             plugin = self.main_window.gui_object.plugins.get_external_plugin('hashdragon-plugin')
             plugin.refresh_ui_for_wallet(self.main_window.wallet.basename())
         else:
-            self.show_error('Error requesting hashdragon to wander:\n' + msg)
+            self.show_error('Error requesting hashdragon to hibernate:\n' + msg)
 
         self.close()
         return True

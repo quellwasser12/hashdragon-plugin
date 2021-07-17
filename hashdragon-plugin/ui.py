@@ -7,7 +7,9 @@ from electroncash_gui.qt.util import MyTreeWidget, MessageBoxMixin
 
 from .detail_dialog import DetailDialog
 from .wander_dialog import WanderDialog
-from .hashdragons import Hashdragon
+from .hibernate_dialog import HibernateDialog
+from .hashdragons import Hashdragon, HashdragonDescriber
+
 
 
 class Ui(MyTreeWidget, MessageBoxMixin):
@@ -31,6 +33,10 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         d = WanderDialog(hashdragon, self.parent)
         d.show()
 
+    def show_hashdragon_hibernate(self, hashdragon):
+        d = HibernateDialog(hashdragon, self.parent)
+        d.show()
+
     def create_menu(self, position):
         hashdragon = self.currentItem()
         if not hashdragon:
@@ -42,6 +48,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         menu.addAction(_('Details'), lambda: self.show_hashdragon_details(hd_object))
         menu.addSeparator()
         menu.addAction(_('Wander'), lambda: self.show_hashdragon_wander(hd_object))
+        menu.addAction(_('Hibernate'), lambda: self.show_hashdragon_hibernate(hd_object))
 
         menu.exec_(self.viewport().mapToGlobal(position))
 
@@ -50,3 +57,4 @@ class Ui(MyTreeWidget, MessageBoxMixin):
 
     def on_update(self):
         pass
+

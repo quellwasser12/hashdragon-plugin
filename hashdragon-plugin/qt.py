@@ -223,14 +223,12 @@ class Plugin(BasePlugin):
             hd_item.setBackground(4, QBrush(QColor(r, g, b)))
             ui.addChild(hd_item)
 
-
     @hook
     def close_wallet(self, wallet):
         wallet_name = wallet.basename()
         window = self.wallet_windows[wallet_name]
         del self.wallet_windows[wallet_name]
         self.remove_ui_for_wallet(wallet_name, window)
-
 
     def _create_qicon(self):
         pixmap = QPixmap(40, 40)
@@ -241,7 +239,6 @@ class Plugin(BasePlugin):
         painter.drawText(QRect(0, 0, 40, 40), Qt.AlignCenter, u"\u136C")
         painter.end()
         return QIcon(pixmap)
-
 
     def add_ui_for_wallet(self, wallet_name, window):
         from .ui import Ui
@@ -259,7 +256,6 @@ class Plugin(BasePlugin):
             del self.wallet_payment_tabs[wallet_name]
             i = window.tabs.indexOf(wallet_tab)
             window.tabs.removeTab(i)
-
 
     def refresh_ui_for_wallet(self, wallet_name):
         wallet_tab = self.wallet_payment_tabs[wallet_name]

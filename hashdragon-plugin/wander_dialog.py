@@ -168,10 +168,13 @@ class WanderDialog(QDialog, MessageBoxMixin, PrintError):
             self.show_message('Hashdragon request wander has been successfully submitted.')
             self.main_window.update_wallet()
 
-            plugin = self.main_window.gui_object.plugins.get_external_plugin('hashdragon-plugin')
-            plugin.refresh_ui_for_wallet(self.main_window.wallet.basename())
         else:
             self.show_error('Error requesting hashdragon to wander:\n' + msg)
 
         self.close()
+
+        # FIXME Shameful hack to refresh after a delay
+        import time
+        time.sleep(1)
+        run_hook('update', self.main_window.wallet)
         return True

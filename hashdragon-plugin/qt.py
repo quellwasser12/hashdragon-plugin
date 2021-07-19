@@ -224,6 +224,27 @@ class Plugin(BasePlugin):
             ui.addChild(hd_item)
 
     @hook
+    def update(self, wallet):
+        wallet_name = wallet.basename()
+        ui = self.wallet_payment_lists[wallet_name]
+        ui.clear()
+
+        spendable_coins = wallet.get_spendable_coins(None, self.config)
+        hashdragons = self.extract_hashdragons(wallet, spendable_coins)
+        describer = HashdragonDescriber()
+
+        for hd in hashdragons:
+            hd_item = QTreeWidgetItem(ui)
+            h = Hashdragon.from_hex_string(hd)
+            hd_item.setData(0, 0, h.hashdragon())
+            hd_item.setData(1, 0, self.hashdragon_state[h.hashdragon()])
+            hd_item.setData(2, 0, describer.describe(h))
+            hd_item.setData(3, 0, h.strength())
+            r, g, b = h.colour_as_rgb()
+            hd_item.setBackground(4, QBrush(QColor(r, g, b)))
+            ui.addChild(hd_item)
+
+    @hook
     def close_wallet(self, wallet):
         wallet_name = wallet.basename()
         window = self.wallet_windows[wallet_name]

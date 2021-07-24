@@ -1,6 +1,6 @@
 {
     "display_name": "Hashdragon Plugin",
-    "version": "1.0",
+    "version": "1.0-alpha1",
     "description": "Plugin Hashdragon Plugin",
     "project_url": "https://github.com/Quellwasser12/hashdragon-plugin",
     "minimum_ec_version": "4.0",

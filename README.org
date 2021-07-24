@@ -1,3 +1,10 @@
 * Hashdragon Electron Cash Plugin
 
-  A Electron Cash plugin to manage hashdragons.  WIP
+  A Electron Cash plugin to manage hashdragons.
+
+
+* License
+
+  Copyright © 2021 Quellwasser
+
+  This project is licensed under the [[https://choosealicense.com/licenses/gpl-3.0][GNU General Public License v3.0]].

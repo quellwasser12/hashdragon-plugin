@@ -171,7 +171,7 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
         def delayed_run_hook(wallet):
             # Delay running the hook to ensure the state has been successfully updated
             import time
-            time.sleep(1)
+            time.sleep(0.5)
             run_hook('update', wallet)
 
         def broadcast_done(success):

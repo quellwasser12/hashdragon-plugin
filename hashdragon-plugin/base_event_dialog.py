@@ -34,7 +34,9 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
         self.buttonBox.accepted.connect(self.create_event_txn)
         self.buttonBox.rejected.connect(self.reject)
 
-        # TODO Push adding components to subclasses.
+        self.build_layout(action)
+
+    def build_layout(self, action):
         self.layout = QGridLayout()
         self.layout.setColumnStretch(1, 4)
         self.layout.setColumnStretch(2, 4)

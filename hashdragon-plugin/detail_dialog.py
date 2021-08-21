@@ -3,9 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from electroncash.util import PrintError
-
 from .hashdragons import HashdragonDescriber
-
 
 class DetailDialog(QDialog, PrintError):
 
@@ -94,10 +92,6 @@ class DetailDialog(QDialog, PrintError):
         self.layout.addWidget(QLabel('Maturity: '), 14, 0)
         self.maturity = hashdragon.maturity()
         self.layout.addWidget(QLabel(f'{self.maturity}'), 14, 1)
-
-        self.layout.addWidget(QLabel('Sigil: '), 15, 0)
-        self.sigil = hashdragon.sigil_unicode()
-        self.layout.addWidget(QLabel(f'{self.sigil}'), 15, 1)
 
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)

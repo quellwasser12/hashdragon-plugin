@@ -1,5 +1,3 @@
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 from electroncash.i18n import _
@@ -8,8 +6,8 @@ from electroncash_gui.qt.util import MyTreeWidget, MessageBoxMixin
 from .detail_dialog import DetailDialog
 from .wander_dialog import WanderDialog
 from .hibernate_dialog import HibernateDialog
-from .hashdragons import Hashdragon, HashdragonDescriber
-
+from .breed_dialog import BreedDialog
+from .hashdragons import Hashdragon
 
 
 class Ui(MyTreeWidget, MessageBoxMixin):
@@ -37,6 +35,10 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         d = HibernateDialog(hashdragon, self.parent)
         d.show()
 
+    def show_hashdragon_breed(self, hashdragon):
+        d = BreedDialog(hashdragon, self.parent)
+        d.show()
+
     def create_menu(self, position):
         hashdragon = self.currentItem()
         if not hashdragon:
@@ -49,6 +51,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         menu.addSeparator()
         menu.addAction(_('Wander'), lambda: self.show_hashdragon_wander(hd_object))
         menu.addAction(_('Hibernate'), lambda: self.show_hashdragon_hibernate(hd_object))
+        menu.addAction(_('Breed'), lambda: self.show_hashdragon_breed(hd_object))
 
         menu.exec_(self.viewport().mapToGlobal(position))
 

@@ -19,6 +19,9 @@ class HashdragonEntry:
     def get_state(self):
         return self.state
 
+    def get_current_tx(self):
+        return self.current_tx
+
 
 class HashdragonEntryEncoder(json.JSONEncoder):
     def default(self, obj):

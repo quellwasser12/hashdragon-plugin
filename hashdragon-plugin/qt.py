@@ -90,13 +90,11 @@ class Plugin(BasePlugin):
                         i, hd = ops[6]
 
                         if depth == 0:
-                            self.main_window.hashdragons[hd.hex()] = tx
                             self.current_state = 'Hatched'
                             current_owner = find_owner_of_hashdragon(tx)
                             self.db.add_hashdragon(hd.hex(), 'Hatched', tx.txid(), current_owner)
                         else:
                             # If we are higher up in the history, retrieve txn id we started from.
-                            self.main_window.hashdragons[hd.hex()] = self.current_tx.txid()
                             current_owner = find_owner_of_hashdragon(self.current_tx)
                             self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner)
 
@@ -185,7 +183,6 @@ class Plugin(BasePlugin):
         in the wallet.
         """
         txn_list = []
-        self.main_window.hashdragons = dict()
 
         for coin in coins:
             tx = wallet.transactions.get(coin['prevout_hash'])

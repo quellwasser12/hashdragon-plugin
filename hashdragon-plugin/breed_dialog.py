@@ -54,7 +54,7 @@ class BreedDialog(BaseEventDialog):
         fee = None
 
         # Current location of the hashdragon, i.e. last valid tx for this hashdragon
-        current_txn_ref = self.main_window.hashdragons[self.hashdragon.hashdragon()]
+        current_txn_ref = self.db.get_hashdragon_by_hash(self.hashdragon.hashdragon()).get_current_tx()
         ok, r = self.main_window.wallet.network.get_raw_tx_for_txid(current_txn_ref, timeout=10.0)
 
         output_index = -1

@@ -4,8 +4,8 @@ from .base_event_dialog import BaseEventDialog
 # Class that handles the Wander dialog.
 class WanderDialog(BaseEventDialog):
 
-    def __init__(self, hashdragon, parent):
-        BaseEventDialog.__init__(self, hashdragon, 'Wander', parent)
+    def __init__(self, hashdragon, parent, db):
+        BaseEventDialog.__init__(self, hashdragon, 'Wander', parent, db)
 
     def create_opreturn(self, args):
         event = args['event']

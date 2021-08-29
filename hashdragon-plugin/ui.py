@@ -29,15 +29,15 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         d.show()
 
     def show_hashdragon_wander(self, hashdragon):
-        d = WanderDialog(hashdragon, self.parent)
+        d = WanderDialog(hashdragon, self.parent, self.db)
         d.show()
 
     def show_hashdragon_hibernate(self, hashdragon):
-        d = HibernateDialog(hashdragon, self.parent)
+        d = HibernateDialog(hashdragon, self.parent, self.db)
         d.show()
 
-    def show_hashdragon_breed(self, chosen_hashdragon, hashdragons):
-        d = BreedDialog(chosen_hashdragon, self.parent, hashdragons)
+    def show_hashdragon_breed(self, chosen_hashdragon):
+        d = BreedDialog(chosen_hashdragon, self.parent, self.db)
         d.show()
 
     def create_menu(self, position):
@@ -52,7 +52,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         menu.addSeparator()
         menu.addAction(_('Wander'), lambda: self.show_hashdragon_wander(hd_object))
         menu.addAction(_('Hibernate'), lambda: self.show_hashdragon_hibernate(hd_object))
-        menu.addAction(_('Breed'), lambda: self.show_hashdragon_breed(hd_object, self.db))
+        menu.addAction(_('Breed'), lambda: self.show_hashdragon_breed(hd_object))
 
         menu.exec_(self.viewport().mapToGlobal(position))
 

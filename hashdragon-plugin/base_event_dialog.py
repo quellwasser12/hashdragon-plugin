@@ -20,11 +20,12 @@ from .utils import index_to_int
 
 class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
 
-    def __init__(self, hashdragon, action, parent):
+    def __init__(self, hashdragon, action, parent, db):
         QDialog.__init__(self, parent)
         self.main_window = parent
         self.hashdragon = hashdragon
         self.action = action
+        self.db = db
 
         self.setMinimumWidth(750)
         self.setWindowTitle(action)
@@ -73,7 +74,7 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
         fee = None
 
         # Current location of the hashdragon, i.e. last valid tx for this hashdragon
-        current_txn_ref = self.main_window.hashdragons[self.hashdragon.hashdragon()]
+        current_txn_ref = self.db.get_hashdragon_by_hash(self.hashdragon.hashdragon()).get_current_tx()
         ok, r = self.main_window.wallet.network.get_raw_tx_for_txid(current_txn_ref, timeout=10.0)
 
         output_index = -1

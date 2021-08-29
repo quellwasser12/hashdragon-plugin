@@ -9,11 +9,12 @@ import inspect
 
 class HashdragonEntry:
 
-    def __init__(self, h, state, current_tx, current_owner):
+    def __init__(self, h, state, current_tx, current_owner, index):
         self.h = h
         self.state = state
         self.current_tx = current_tx
         self.current_owner = current_owner
+        self.index = index
         self.lifeline = []
 
     def get_state(self):
@@ -21,6 +22,9 @@ class HashdragonEntry:
 
     def get_current_tx(self):
         return self.current_tx
+
+    def get_current_index(self):
+        return self.index
 
 
 class HashdragonEntryEncoder(json.JSONEncoder):
@@ -38,8 +42,8 @@ class HashdragonDb:
         self.db = dict()
         self.initialised = False
 
-    def add_hashdragon(self, h, state, current_tx, current_owner):
-        entry = HashdragonEntry(h, state, current_tx, current_owner)
+    def add_hashdragon(self, h, state, current_tx, current_owner, index):
+        entry = HashdragonEntry(h, state, current_tx, current_owner, index)
         new_db = self.db.copy()
         new_db[h] = entry
         self.db = new_db

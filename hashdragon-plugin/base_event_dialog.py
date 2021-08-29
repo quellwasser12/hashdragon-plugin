@@ -75,25 +75,7 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
 
         # Current location of the hashdragon, i.e. last valid tx for this hashdragon
         current_txn_ref = self.db.get_hashdragon_by_hash(self.hashdragon.hashdragon()).get_current_tx()
-        ok, r = self.main_window.wallet.network.get_raw_tx_for_txid(current_txn_ref, timeout=10.0)
-
-        output_index = -1
-
-        if not ok:
-            self.main_window.show_error("Cannot retrieve original hashdragon transaction.")
-            return False
-        else:
-            tx = Transaction(r, sign_schnorr=self.main_window.wallet.is_schnorr_enabled())
-            for vout in tx.get_outputs():
-                d, index = vout
-                if isinstance(d, ScriptOutput) and d.is_opreturn():
-                    script = d.to_script()
-                    ops = Script.get_ops(script)
-                    i, lokad = ops[1]
-
-                    if lokad == unhexlify('d101d400'):
-                        _, o = ops[4]
-                        output_index = index_to_int(o)
+        output_index = self.db.get_hashdragon_by_hash(self.hashdragon.hashdragon()).get_current_index()
 
         inputs = []
         hashdragon_coin = None
@@ -164,7 +146,7 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
 
         # TODO Add a setting to enable this
         ## Uncomment this to show transaction in popup for debug.
-        #self.main_window.show_transaction(tx, None)
+        self.main_window.show_transaction(tx, None)
 
         def delayed_run_hook(wallet):
             # Delay running the hook to ensure the state has been successfully updated
@@ -182,6 +164,6 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
 
             self.close()
 
-        self.main_window.network.broadcast_transaction(tx, callback=broadcast_done)
+      #  self.main_window.network.broadcast_transaction(tx, callback=broadcast_done)
 
         return True

@@ -25,6 +25,9 @@ class Plugin(BasePlugin):
 
         self.current_tx = None
         self.current_state = None
+        self.current_index = -1
+        self.current_block = -1
+
         self.db = HashdragonDb()
 
     def fullname(self):
@@ -88,15 +91,17 @@ class Plugin(BasePlugin):
                     if command_as_int == 209:
                         # Command is hatch
                         i, hd = ops[6]
+                        _, dest_index = ops[4]
+                        dest_index = index_to_int(dest_index)
 
                         if depth == 0:
                             self.current_state = 'Hatched'
                             current_owner = find_owner_of_hashdragon(tx)
-                            self.db.add_hashdragon(hd.hex(), 'Hatched', tx.txid(), current_owner)
+                            self.db.add_hashdragon(hd.hex(), 'Hatched', tx.txid(), current_owner, dest_index)
                         else:
                             # If we are higher up in the history, retrieve txn id we started from.
                             current_owner = find_owner_of_hashdragon(self.current_tx)
-                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner)
+                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner, self.current_index)
 
                         return [hd.hex(), self.current_state]
 
@@ -117,6 +122,7 @@ class Plugin(BasePlugin):
                             if depth == 0:
                                 self.current_tx = tx
                                 self.current_state = 'Wandering'
+                                self.current_index = dest_index
 
                             if not ok:
                                 print("Could not retrieve transaction.") # TODO handle error
@@ -138,6 +144,7 @@ class Plugin(BasePlugin):
                             if depth == 0:
                                 self.current_tx = tx
                                 self.current_state = 'Rescued'
+                                self.current_index = dest_index
 
                             _, input_index = ops[3]
                             _, txn_ref = ops[5]
@@ -164,6 +171,7 @@ class Plugin(BasePlugin):
                             if depth == 0:
                                 self.current_tx = tx
                                 self.current_state = 'Hibernating'
+                                self.current_index = dest_index
 
                             _, input_index = ops[3]
                             input_index = index_to_int(input_index)

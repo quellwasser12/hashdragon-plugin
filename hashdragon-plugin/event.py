@@ -6,7 +6,7 @@ INDEX_BYTE_SIZE = 4
 class Event:
 
     @staticmethod
-    def build_hashdragon_op_return(command, input_index, output_index, dest_address):
+    def build_hashdragon_op_return(command, input_index, output_index, dest_address, second_input=None, second_output=None, third_output=None):
 
         script = bytearray()
         script.append(0x6a)
@@ -22,6 +22,17 @@ class Event:
             script.extend(Script.push_data(b'\xd3'))
             script.extend(Script.push_data(input_index.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
             script.extend(Script.push_data(output_index.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
+
+        elif command == 'breed':
+            script.extend(Script.push_data(b'\xd4'))
+            # First hashdragon
+            script.extend(Script.push_data(input_index.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
+            script.extend(Script.push_data(output_index.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
+            # Second hashdragon
+            script.extend(Script.push_data(second_input.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
+            script.extend(Script.push_data(second_output.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
+            # Spawn output index.
+            script.extend(Script.push_data(third_output.to_bytes(INDEX_BYTE_SIZE, byteorder='big')))
         else:
             raise Exception('Unsupported command.')
 

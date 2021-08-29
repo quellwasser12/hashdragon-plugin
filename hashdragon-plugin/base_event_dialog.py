@@ -15,6 +15,7 @@ from binascii import unhexlify
 
 from .event import Event
 from .transactions import *
+from .utils import index_to_int
 
 
 class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
@@ -91,10 +92,7 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
 
                     if lokad == unhexlify('d101d400'):
                         _, o = ops[4]
-                        output_index = int.from_bytes(o, 'big')
-                        # If output_index far too big, we are probably dealing with Little Endian
-                        if output_index >= 16777216:
-                            output_index = int.from_bytes(o, 'little')
+                        output_index = index_to_int(o)
 
         inputs = []
         hashdragon_coin = None
@@ -123,10 +121,7 @@ class BaseEventDialog(QDialog, MessageBoxMixin, PrintError):
 
                     if lokad == unhexlify('d101d400'):
                         _, dest_index = ops[4]
-                        idx = int.from_bytes(dest_index, 'big')
-                        # If idx far too big, we are probably dealing with Little Endian
-                        if idx >= 16777216:
-                            idx = int.from_bytes(dest_index, 'little')
+                        idx = index_to_int(dest_index)
 
             if flag and (idx <= -1 or idx != vout_index) and coin['value'] > 400:
                 spendable_coins.append(coin)

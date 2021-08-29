@@ -11,7 +11,7 @@ from .hashdragons import Hashdragon
 
 
 class Ui(MyTreeWidget, MessageBoxMixin):
-    def __init__(self, parent, plugin, wallet_name):
+    def __init__(self, plugin, parent, wallet_name):
         MyTreeWidget.__init__(self, parent, self.create_menu, [
             _('Hashdragon'),
             _('State'),
@@ -22,7 +22,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
 
         self.plugin = plugin
         self.wallet_name = wallet_name
-        self.hashdragons = plugin.hashdragon_state
+        self.db = plugin.db
 
     def show_hashdragon_details(self, hashdragon):
         d = DetailDialog(hashdragon, self.parent)
@@ -52,7 +52,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         menu.addSeparator()
         menu.addAction(_('Wander'), lambda: self.show_hashdragon_wander(hd_object))
         menu.addAction(_('Hibernate'), lambda: self.show_hashdragon_hibernate(hd_object))
-        menu.addAction(_('Breed'), lambda: self.show_hashdragon_breed(hd_object, self.hashdragons.keys()))
+        menu.addAction(_('Breed'), lambda: self.show_hashdragon_breed(hd_object, self.db))
 
         menu.exec_(self.viewport().mapToGlobal(position))
 
@@ -61,4 +61,3 @@ class Ui(MyTreeWidget, MessageBoxMixin):
 
     def on_update(self):
         pass
-

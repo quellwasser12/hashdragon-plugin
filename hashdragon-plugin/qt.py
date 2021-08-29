@@ -8,7 +8,8 @@ from electroncash.plugins import BasePlugin, hook
 from electroncash.address import Script, Address, ScriptOutput
 from binascii import unhexlify,hexlify
 from .hashdragons import Hashdragon, HashdragonDescriber
-
+from .hashdragon_db import HashdragonDb
+from .utils import find_owner_of_hashdragon, index_to_int
 
 class Plugin(BasePlugin):
     electrumcash_qt_gui = None
@@ -21,9 +22,10 @@ class Plugin(BasePlugin):
         self.wallet_windows = {}
         self.wallet_payment_tabs = {}
         self.wallet_payment_lists = {}
+
         self.current_tx = None
         self.current_state = None
-        self.hashdragon_state = dict()
+        self.db = HashdragonDb()
 
     def fullname(self):
         return 'Hashdragon Plugin'
@@ -77,7 +79,6 @@ class Plugin(BasePlugin):
                 ops = Script.get_ops(script)
                 i, lokad = ops[1]
 
-                # TODO Extract logic, and check command: hashdragon may not be in this script
                 if lokad == unhexlify('d101d400'):
 
                     _, command = ops[2]
@@ -89,29 +90,34 @@ class Plugin(BasePlugin):
                         i, hd = ops[6]
 
                         if depth == 0:
-                            self.main_window.hashdragons[hd.hex()] = tx.txid()
+                            self.main_window.hashdragons[hd.hex()] = tx
                             self.current_state = 'Hatched'
+                            current_owner = find_owner_of_hashdragon(tx)
+                            self.db.add_hashdragon(hd.hex(), 'Hatched', tx.txid(), current_owner)
                         else:
-                            # If we are higher up in the history, retrieve original txn id
-                            self.main_window.hashdragons[hd.hex()] = self.current_tx
+                            # If we are higher up in the history, retrieve txn id we started from.
+                            self.main_window.hashdragons[hd.hex()] = self.current_tx.txid()
+                            current_owner = find_owner_of_hashdragon(self.current_tx)
+                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner)
+
                         return [hd.hex(), self.current_state]
 
                     # 210, d2, 5 args, wander
                     elif command_as_int == 210 and len(ops) <= 5:
                         # Command is wander
                         _, dest_index = ops[4]
-                        dest_index = int.from_bytes(dest_index, 'big')
+                        dest_index = index_to_int(dest_index)
                         owner_vout, _ = tx.get_outputs()[dest_index]
 
                         # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
                             _, input_index = ops[3]
-                            input_index = int.from_bytes(input_index, 'big')
+                            input_index = index_to_int(input_index)
                             owner_vin = tx.inputs()[input_index]
                             ok, r = wallet.network.get_raw_tx_for_txid(owner_vin['prevout_hash'], timeout=10.0)
 
                             if depth == 0:
-                                self.current_tx = tx.txid()
+                                self.current_tx = tx
                                 self.current_state = 'Wandering'
 
                             if not ok:
@@ -125,14 +131,14 @@ class Plugin(BasePlugin):
                     elif command_as_int == 210 and len(ops) > 5:
                         # Command is a rescue.
                         _, dest_index = ops[4]
-                        dest_index = int.from_bytes(dest_index, 'big')
+                        dest_index = index_to_int(dest_index)
                         owner_vout, _ = tx.get_outputs()[dest_index]
 
                         # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
 
                             if depth == 0:
-                                self.current_tx = tx.txid()
+                                self.current_tx = tx
                                 self.current_state = 'Rescued'
 
                             _, input_index = ops[3]
@@ -158,11 +164,11 @@ class Plugin(BasePlugin):
                         if wallet.is_mine(owner_vout):
 
                             if depth == 0:
-                                self.current_tx = tx.txid()
+                                self.current_tx = tx
                                 self.current_state = 'Hibernating'
 
                             _, input_index = ops[3]
-                            input_index = int.from_bytes(input_index, 'big')
+                            input_index = index_to_int(input_index)
                             owner_vin = tx.inputs()[input_index]
                             ok, r = wallet.network.get_raw_tx_for_txid(owner_vin['prevout_hash'], timeout=10.0)
 
@@ -183,17 +189,10 @@ class Plugin(BasePlugin):
 
         for coin in coins:
             tx = wallet.transactions.get(coin['prevout_hash'])
-            val = self.process_txn(tx, wallet)
+            self.process_txn(tx, wallet)
 
-            # Add val if not in list already (multiple coins can be issued from the same txn)
-            if val is not None:
-                hd, state = val
-                if hd not in txn_list:
-                    txn_list.append(hd)
-                    self.hashdragon_state[hd] = state
-
-        txn_list.sort()
-        return txn_list
+        self.db.ready()
+        return self.db.list_hashdragons()
 
     def display_hashdragons(self, ui, wallet):
         spendable_coins = wallet.get_spendable_coins(None, self.config)
@@ -203,8 +202,9 @@ class Plugin(BasePlugin):
         for hd in hashdragons:
             hd_item = QTreeWidgetItem(ui)
             h = Hashdragon.from_hex_string(hd)
+            state = self.db.get_hashdragon_by_hash(hd).get_state()
             hd_item.setData(0, 0, h.hashdragon())
-            hd_item.setData(1, 0, self.hashdragon_state[h.hashdragon()])
+            hd_item.setData(1, 0, state)
             hd_item.setData(2, 0, describer.describe(h))
             hd_item.setData(3, 0, h.strength())
             r, g, b = h.colour_as_rgb()
@@ -253,7 +253,7 @@ class Plugin(BasePlugin):
 
     def add_ui_for_wallet(self, wallet_name, window):
         from .ui import Ui
-        l = Ui(window, self, wallet_name)
+        l = Ui(self, window, wallet_name)
         tab = window.create_list_tab(l)
         self.wallet_payment_tabs[wallet_name] = tab
         self.wallet_payment_lists[wallet_name] = l

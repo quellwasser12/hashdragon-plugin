@@ -79,6 +79,8 @@ class BreedDialog(BaseEventDialog):
                 hashdragon_coin2 = coin
 
 
+        # TODO Add some logic for maturity.
+
         # Find a spendable coin that is not a hashdragon, and with sufficient value.
         spendable_coins = []
         for coin in coins:
@@ -124,6 +126,9 @@ class BreedDialog(BaseEventDialog):
 
         addr = self.parse_address(dest_address)
         outputs.append((TYPE_ADDRESS, addr, 546)) # min required dust is 546 sat
+
+        # TODO: Add outputs for hashdragon1 and hashdragon2
+        # TODO: Add option on UI to select a unique address for all 3, or 3 separate addresses.
 
         # Use value of hashdragon input as fee.
         # Fee will be added later when solving disappearing input coin issue

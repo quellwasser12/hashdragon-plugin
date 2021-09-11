@@ -25,7 +25,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         self.db = plugin.db
 
     def show_hashdragon_details(self, hashdragon):
-        d = DetailDialog(hashdragon, self.parent)
+        d = DetailDialog(hashdragon, self.parent, self.db)
         d.show()
 
     def show_hashdragon_wander(self, hashdragon):

@@ -103,11 +103,13 @@ class Plugin(BasePlugin):
                         if depth == 0:
                             self.current_state = 'Hatched'
                             current_owner = find_owner_of_hashdragon(tx)
-                            self.db.add_hashdragon(hd.hex(), 'Hatched', tx.txid(), current_owner, dest_index)
+                            height, _, _ = wallet.get_tx_height(tx.txid())
+                            self.db.add_hashdragon(hd.hex(), 'Hatched', tx.txid(), current_owner, dest_index, height, tx.txid())
                         else:
                             # If we are higher up in the history, retrieve txn id we started from.
                             current_owner = find_owner_of_hashdragon(self.current_tx)
-                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner, self.current_index)
+                            height, _, _ = wallet.get_tx_height(tx.txid())
+                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner, self.current_index, height, tx.txid())
 
                         return [hd.hex(), self.current_state]
 

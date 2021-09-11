@@ -32,6 +32,7 @@ class HashdragonEntry:
         return self.hatched_block
 
 
+
 class HashdragonEntryEncoder(json.JSONEncoder):
     def default(self, obj):
         if hasattr(obj, "__dict__"):
@@ -57,6 +58,10 @@ class HashdragonDb:
     def get_hashdragon_by_hash(self, h) -> HashdragonEntry:
         return self.db[h]
 
+    def get_hashdragons_by_tx(self, txid) -> list[HashdragonEntry]:
+        hashdragons = self.list_hashdragons()
+        return list(filter(lambda h: h.get_current_tx() == txid, hashdragons))
+
     def list_hashdragons(self) -> list[HashdragonEntry]:
         keys = list(self.db.keys())
         keys.sort()
@@ -69,5 +74,5 @@ class HashdragonDb:
         self.initialised = True
 
     def dump(self) -> None:
-       # print(json.dumps(self.db, cls=HashdragonEntryEncoder, indent=2, sort_keys=True, check_circular=False))
+        # print(json.dumps(self.db, indent=2, sort_keys=True, check_circular=False))
         print(self.db)

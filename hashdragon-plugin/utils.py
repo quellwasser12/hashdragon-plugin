@@ -149,3 +149,7 @@ def find_owner_of_hashdragon(tx) -> Address:
                     assert isinstance(owner_vout, Address), "Something wrong: owner should be Address."
                     return owner_vout
     return None
+
+
+def xor_arrays(one, two):
+    return bytes(a ^ b for a, b in zip(one, two))

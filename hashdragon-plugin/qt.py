@@ -15,7 +15,8 @@ from electroncash.address import Script, Address, ScriptOutput
 from binascii import unhexlify,hexlify
 from .hashdragons import Hashdragon, HashdragonDescriber
 from .hashdragon_db import HashdragonDb
-from .utils import find_owner_of_hashdragon, index_to_int
+from .utils import find_owner_of_hashdragon, index_to_int, xor_arrays
+
 
 class Plugin(BasePlugin):
     electrumcash_qt_gui = None
@@ -79,7 +80,6 @@ class Plugin(BasePlugin):
 
     def process_txn(self, tx, wallet, depth=0):
         dest_index = -1
-
         for vout in tx.get_outputs():
             d, index = vout
 
@@ -168,7 +168,7 @@ class Plugin(BasePlugin):
                     elif command_as_int == 211:
                         # Command is hibernate
                         _, dest_index = ops[4]
-                        dest_index = int.from_bytes(dest_index, 'big')
+                        dest_index = index_to_int(dest_index)
                         owner_vout, _ = tx.get_outputs()[dest_index]
 
                         # Only look into this hashdragon if we are the owner.
@@ -190,6 +190,55 @@ class Plugin(BasePlugin):
                             else:
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
                                 return self.process_txn(tx0, wallet, depth+1)
+                    # 212, d4, breed
+                    elif command_as_int == 212:
+                        # Command is breed
+                        _, dest_index = ops[7]
+                        dest_index = index_to_int(dest_index)
+                        owner_vout, _ = tx.get_outputs()[dest_index]
+
+                        # Only look into this hashdragon if we are the owner.
+                        if wallet.is_mine(owner_vout):
+
+                            if depth == 0:
+                                self.current_tx = tx
+                                self.current_state = 'Spawn'
+                                self.current_index = dest_index
+
+                            # TODO Extract function for this pattern: get original txn for input index
+                            # First hashdragon
+                            _, input_index_1 = ops[3]
+                            input_index_1 = index_to_int(input_index_1)
+                            owner_vin_1 = tx.inputs()[input_index_1]
+                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin_1['prevout_hash'], timeout=10.0)
+                            hex_hashdragon_1 = None
+                            if not ok:
+                                print("Could not retrieve transaction.") # TODO handle error
+                            else:
+                                tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
+                                hex_hashdragon_1, _ = self.process_txn(tx0, wallet)
+
+                            # Second hashdragon
+                            _, input_index_2 = ops[5]
+                            input_index_2 = index_to_int(input_index_2)
+                            owner_vin_2 = tx.inputs()[input_index_2]
+                            ok, r = wallet.network.get_raw_tx_for_txid(owner_vin_2['prevout_hash'], timeout=10.0)
+                            hex_hashdragon_2 = None
+                            if not ok:
+                                print("Could not retrieve transaction.") # TODO handle error
+                            else:
+                                tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
+                                hex_hashdragon_2, _ = self.process_txn(tx0, wallet)
+
+                            # Compute hash of spawn.
+                            if hex_hashdragon_1 is not None and hex_hashdragon_2 is not None:
+                                tx_block_hash = unhexlify(wallet.get_tx_block_hash(tx))
+                                spawn = xor_arrays(unhexlify(hex_hashdragon_1),
+                                                   xor_arrays(hex_hashdragon_2, tx_block_hash))
+                                spawn[0] = b'\xd4'
+                                print("Hex of the spawn: %s" % spawn)
+                                return [spawn, self.current_state]
+                                # TODO Add hashdragon to DB.
 
     def extract_hashdragons(self, wallet, coins):
         """

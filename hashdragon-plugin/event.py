@@ -3,6 +3,7 @@ from electroncash.address import Script, Address, ScriptOutput
 LOKAD_ID = b'\xd1\x01\xd4\x00'
 INDEX_BYTE_SIZE = 4
 
+
 class Event:
 
     @staticmethod

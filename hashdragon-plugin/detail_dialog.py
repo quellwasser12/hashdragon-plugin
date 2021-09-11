@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from electroncash.util import PrintError
 from .hashdragons import HashdragonDescriber
 
+
 class DetailDialog(QDialog, PrintError):
 
     def __init__(self, hashdragon, parent):

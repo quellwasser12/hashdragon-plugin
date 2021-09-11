@@ -8,6 +8,8 @@ from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
 from .event import Event
 from .transactions import *
 from .utils import *
+from .hashdragons import Hashdragon
+
 
 # Class that handles the Breed dialog.
 class BreedDialog(BaseEventDialog):
@@ -22,9 +24,11 @@ class BreedDialog(BaseEventDialog):
         self.layout = QGridLayout()
         self.layout.setColumnStretch(1, 4)
         self.layout.setColumnStretch(2, 4)
+        self.layout.setColumnStretch(3, 4)
 
         self.layout.addWidget(QLabel("Breed"), 0, 0)
         self.layout.addWidget(QLabel(self.hashdragon.hashdragon()), 0, 1)
+        self.layout.addWidget(QLabel("Maturity: %s" % self.hashdragon.maturity()), 0, 2)
 
         breedwithlabel = QLabel("with")
 
@@ -33,9 +37,18 @@ class BreedDialog(BaseEventDialog):
         self.breed_with_cb = QComboBox()
         self.breed_with_cb.addItems(self.hashdragons)
 
+        def on_combobox_changed(val):
+            hd = Hashdragon.from_hex_string(val)
+            self.maturity_label.setText("Maturity: %s" % hd.maturity())
+
         # self.hibernate_to = PayToEdit(self.main_window)
         breedwithlabel.setBuddy(self.breed_with_cb)
         self.layout.addWidget(self.breed_with_cb, 1, 1)
+        self.breed_with_cb.currentTextChanged.connect(on_combobox_changed)
+
+        self.maturity_label = QLabel("Maturity: %s" %
+                                     Hashdragon.from_hex_string(self.breed_with_cb.currentText()).maturity())
+        self.layout.addWidget(self.maturity_label, 1, 2)
 
         sendhatchlingtolabel = QLabel("Send Spawn to")
 
@@ -54,8 +67,7 @@ class BreedDialog(BaseEventDialog):
         event = args['event']
         dest_address = args['dest_address']
 
-        # FIXME Correct indices for Breeding OP_RETURN script.
-        return event.build_hashdragon_op_return('breed', 0, 1, dest_address, 1, 2, 3)
+        return event.build_hashdragon_op_return('breed', 1, 2, dest_address, 2, 3, 4)
 
     def create_event_txn(self):
         coins = self.main_window.wallet.get_spendable_coins(None, self.main_window.config)
@@ -77,7 +89,6 @@ class BreedDialog(BaseEventDialog):
                 hashdragon_coin1 = coin
             if coin['prevout_hash'] == current_txn_ref2 and coin['prevout_n'] == output_index2:
                 hashdragon_coin2 = coin
-
 
         # TODO Add some logic for maturity.
 
@@ -111,6 +122,9 @@ class BreedDialog(BaseEventDialog):
 
         inputs.append(spendable_coins[0])
 
+        # Outputs
+        # Destination address
+        # TODO Support multiple destination addresses, one for each hashdragon.
         dest_address = self.send_hatchling_to.text() if self.send_hatchling_to.text() != '' else None
         if dest_address is None:
             self.main_window.show_message("Invalid destination address.")
@@ -126,8 +140,9 @@ class BreedDialog(BaseEventDialog):
 
         addr = self.parse_address(dest_address)
         outputs.append((TYPE_ADDRESS, addr, 546)) # min required dust is 546 sat
+        outputs.append((TYPE_ADDRESS, addr, 546)) # min required dust is 546 sat
+        outputs.append((TYPE_ADDRESS, addr, 546)) # min required dust is 546 sat
 
-        # TODO: Add outputs for hashdragon1 and hashdragon2
         # TODO: Add option on UI to select a unique address for all 3, or 3 separate addresses.
 
         # Use value of hashdragon input as fee.
@@ -163,6 +178,6 @@ class BreedDialog(BaseEventDialog):
 
             self.close()
 
-      #  self.main_window.network.broadcast_transaction(tx, callback=broadcast_done)
+        # self.main_window.network.broadcast_transaction(tx, callback=broadcast_done)
 
         return True

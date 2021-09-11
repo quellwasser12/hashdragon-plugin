@@ -1,3 +1,9 @@
+"""
+hashdragon-plugin.qt
+
+Main entry point for the Hashdragon Electron Cash plugin.
+"""
+
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -31,7 +37,7 @@ class Plugin(BasePlugin):
         self.db = HashdragonDb()
 
     def fullname(self):
-        return 'Hashdragon Plugin'
+        return _("Hashdragon Plugin")
 
     def description(self):
         return _("Hashdragon Plugin")

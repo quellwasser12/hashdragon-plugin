@@ -2,6 +2,7 @@
 
 from binascii import unhexlify
 
+
 class HashdragonDescriber:
 
     def describe_inner_light(self, hashdragon):

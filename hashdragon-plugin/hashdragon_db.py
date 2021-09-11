@@ -5,7 +5,7 @@ Db of the hashdragons living in the wallet.
 """
 
 import json
-import inspect
+
 
 class HashdragonEntry:
 

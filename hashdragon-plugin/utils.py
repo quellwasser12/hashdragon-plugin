@@ -8,7 +8,8 @@ from electroncash import Transaction
 from electroncash.address import Script, Address, ScriptOutput
 from binascii import unhexlify, hexlify
 
-def index_to_int(index_bytes):
+
+def index_to_int(index_bytes) -> int:
     """
     Converts the bytes of input_index/output_index of the hashdragon protocol into int.
 
@@ -22,7 +23,8 @@ def index_to_int(index_bytes):
 
     return index
 
-def find_hashdragon_hash_from_script(wallet, tx):
+
+def find_hashdragon_hash_from_script(wallet, tx) -> str:
     """
     Finds the hash of the hashdragon based on a given tx.
     """
@@ -61,7 +63,7 @@ def find_hashdragon_hash_from_script(wallet, tx):
                         ok, r = wallet.network.get_raw_tx_for_txid(owner_vin['prevout_hash'], timeout=10.0)
 
                         if not ok:
-                            print("Could not retrieve transaction.") # TODO handle error
+                            print("Could not retrieve transaction.")  # TODO handle error
                             return None
                         else:
                             tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
@@ -81,7 +83,7 @@ def find_hashdragon_hash_from_script(wallet, tx):
 
                         ok, r = wallet.network.get_raw_tx_for_txid(hexlify(txn_ref).decode(), timeout=10.0)
                         if not ok:
-                            print("Could not retrieve transaction.") # TODO handle error
+                            print("Could not retrieve transaction.")  # TODO handle error
                             return None
                         else:
                             # Recursively call process_txn to find hashdragon.
@@ -104,7 +106,7 @@ def find_hashdragon_hash_from_script(wallet, tx):
                         ok, r = wallet.network.get_raw_tx_for_txid(owner_vin['prevout_hash'], timeout=10.0)
 
                         if not ok:
-                            print("Could not retrieve transaction.") # TODO handle error
+                            print("Could not retrieve transaction.")  # TODO handle error
                             return None
                         else:
                             tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
@@ -124,25 +126,26 @@ def find_last_valid_tx_for_hashdragon(wallet, hashdragon, config):
 
     return None
 
-def find_owner_of_hashdragon(tx):
+
+def find_owner_of_hashdragon(tx) -> Address:
     for vout in tx.get_outputs():
-         d, index = vout
+        d, index = vout
 
-         if isinstance(d, ScriptOutput) and d.is_opreturn():
-             script = d.to_script()
-             ops = Script.get_ops(script)
-             i, lokad = ops[1]
+        if isinstance(d, ScriptOutput) and d.is_opreturn():
+            script = d.to_script()
+            ops = Script.get_ops(script)
+            i, lokad = ops[1]
 
-             if lokad == unhexlify('d101d400'):
-                 _, command = ops[2]
-                 command_as_int = int.from_bytes(command, 'big')
-                 # 209, d1, hatch
-                 if command_as_int in [209, 210, 211]:
-                     i, dest_index = ops[4]
-                     dest_index = index_to_int(dest_index)
-                     owner_vout, _ = tx.get_outputs()[dest_index]
+            if lokad == unhexlify('d101d400'):
+                _, command = ops[2]
+                command_as_int = int.from_bytes(command, 'big')
+                # 209, d1, hatch
+                if command_as_int in [209, 210, 211]:
+                    i, dest_index = ops[4]
+                    dest_index = index_to_int(dest_index)
+                    owner_vout, _ = tx.get_outputs()[dest_index]
 
-                     # Return the vout, of type Address
-                     assert isinstance(owner_vout, Address), "Something wrong: owner should be Address."
-                     return owner_vout
+                    # Return the vout, of type Address
+                    assert isinstance(owner_vout, Address), "Something wrong: owner should be Address."
+                    return owner_vout
     return None

@@ -4,8 +4,6 @@ hashdragon-plugin.hashdragon_db
 Db of the hashdragons living in the wallet.
 """
 
-import json
-
 
 class HashdragonEntry:
 
@@ -31,13 +29,15 @@ class HashdragonEntry:
     def get_hatched_block(self) -> int:
         return self.hatched_block
 
-
-
-class HashdragonEntryEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if hasattr(obj, "__dict__"):
-            return self.__dict__
-        return obj
+    def __repr__(self):
+        return """{"h": "%s",
+"state": "%s",
+"current_tx": "%s",
+"current_owner": "%s",
+"index": %d,
+"hatched_block": %d,
+"hatched_tx": "%s"}""" % (self.h, self.state, self.current_tx, self.current_owner,
+                          self.index, self.hatched_block, self.hatched_tx)
 
 
 class HashdragonDb:
@@ -74,5 +74,4 @@ class HashdragonDb:
         self.initialised = True
 
     def dump(self) -> None:
-        # print(json.dumps(self.db, indent=2, sort_keys=True, check_circular=False))
         print(self.db)

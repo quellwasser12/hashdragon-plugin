@@ -67,7 +67,7 @@ class BreedDialog(BaseEventDialog):
         event = args['event']
         dest_address = args['dest_address']
 
-        return event.build_hashdragon_op_return('breed', 1, 2, dest_address, 2, 3, 4)
+        return event.build_hashdragon_op_return('breed', 0, 1, dest_address, 1, 2, 3)
 
     def create_event_txn(self):
         coins = self.main_window.wallet.get_spendable_coins(None, self.main_window.config)

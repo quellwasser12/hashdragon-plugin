@@ -153,3 +153,18 @@ def find_owner_of_hashdragon(tx) -> Address:
 
 def xor_arrays(one, two):
     return bytes(a ^ b for a, b in zip(one, two))
+
+
+def current_block_ref(wallet) -> str:
+    local_height = wallet.get_local_height()
+    return wallet.get_block_hash(local_height)
+
+
+def count_leading_zeroes(h) -> int:
+    count = 0
+    for i in h:
+        if i == '0':
+            count += 1
+        else:
+            break
+    return count

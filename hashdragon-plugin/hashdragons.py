@@ -139,7 +139,7 @@ class Hashdragon:
 
     def colour(self):
         colour_bytes = self.b[4:7]
-        return '#' + ''.join( '%02x' % b for b in colour_bytes)
+        return '#' + ''.join('%02x' % b for b in colour_bytes)
 
     def inner_light(self):
         return self.b[3]

@@ -3,6 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from binascii import hexlify, unhexlify
 from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
 
 from .event import Event
@@ -19,6 +20,22 @@ class BreedDialog(BaseEventDialog):
         list_hashdragons.remove(hashdragon.hashdragon())
         self.hashdragons = list_hashdragons
         BaseEventDialog.__init__(self, hashdragon, 'Breed', parent, db)
+
+    def predict_spawn(self, parent_one, parent_two, leading_zeroes):
+        predicted_start = 'd4' + \
+                          hexlify(xor_arrays(unhexlify(parent_one[2:leading_zeroes]),
+                                             unhexlify(parent_two[2:leading_zeroes]))).decode()
+        predicted_hd = Hashdragon.from_hex_string(predicted_start)
+        self.predictedhdlabel.setText(f'{predicted_start}...')
+        self.predictedhdlabel.setAutoFillBackground(True)
+        [r, g, b] = predicted_hd.colour_as_rgb()
+        color = QColor(r, g, b)
+        alpha = 255
+        values = "{r}, {g}, {b}, {a}".format(r=color.red(),
+                                                 g=color.green(),
+                                                 b=color.blue(),
+                                                 a=alpha)
+        self.predictedhdlabel.setStyleSheet("QLabel { background-color: rgba(" + values + "); }")
 
     def build_layout(self, action):
         self.layout = QGridLayout()
@@ -37,9 +54,20 @@ class BreedDialog(BaseEventDialog):
         self.breed_with_cb = QComboBox()
         self.breed_with_cb.addItems(self.hashdragons)
 
+
+        # Using current block ref to figure out num of leading zeroes
+        # is a good enough heuristic to “predict” leading zeroes of block for breeding.
+        current_block = current_block_ref(self.main_window.wallet)
+        leading_zeroes = count_leading_zeroes(current_block)+1
+
         def on_combobox_changed(val):
             hd = Hashdragon.from_hex_string(val)
             self.maturity_label.setText("Maturity: %s" % hd.maturity())
+
+            parent_one = hd.hashdragon()
+            parent_two = self.hashdragon.hashdragon()
+
+            self.predict_spawn(parent_one, parent_two, leading_zeroes)
 
         # self.hibernate_to = PayToEdit(self.main_window)
         breedwithlabel.setBuddy(self.breed_with_cb)
@@ -58,6 +86,10 @@ class BreedDialog(BaseEventDialog):
         # self.hibernate_to = PayToEdit(self.main_window)
         sendhatchlingtolabel.setBuddy(self.send_hatchling_to)
         self.layout.addWidget(self.send_hatchling_to, 2, 1)
+
+        self.predictedhdlabel = QLabel("")
+        self.layout.addWidget(self.predictedhdlabel, 3, 1)
+        self.predict_spawn(self.hashdragon.hashdragon(), self.breed_with_cb.currentText(), leading_zeroes)
 
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)

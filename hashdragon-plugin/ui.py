@@ -14,6 +14,7 @@ class Ui(MyTreeWidget, MessageBoxMixin):
     def __init__(self, plugin, parent, wallet_name):
         MyTreeWidget.__init__(self, parent, self.create_menu, [
             _('Hashdragon'),
+            _('Mature?'),
             _('State'),
             _('Description'),
             _('Strength'),
@@ -52,8 +53,12 @@ class Ui(MyTreeWidget, MessageBoxMixin):
         menu.addSeparator()
         menu.addAction(_('Wander'), lambda: self.show_hashdragon_wander(hd_object))
         menu.addAction(_('Hibernate'), lambda: self.show_hashdragon_hibernate(hd_object))
-        menu.addAction(_('Breed'), lambda: self.show_hashdragon_breed(hd_object))
 
+        breed_action = QAction(self)
+        breed_action.setText(_('Breed'))
+        breed_action.triggered.connect(lambda: self.show_hashdragon_breed(hd_object))
+        breed_action.setEnabled(hashdragon.data(1, 0))
+        menu.addAction(breed_action)
         menu.exec_(self.viewport().mapToGlobal(position))
 
     def on_delete(self):

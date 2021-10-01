@@ -15,8 +15,15 @@ from .hashdragons import Hashdragon
 # Class that handles the Breed dialog.
 class BreedDialog(BaseEventDialog):
 
+    @classmethod
+    def is_mature(cls, db, hashdragon, current_block):
+        hd = db.get_hashdragon_by_hash(hashdragon)
+        hd_virtues = Hashdragon.from_hex_string(hashdragon)
+        return current_block >= hd.get_hatched_block() + hd_virtues.maturity()
+
     def __init__(self, hashdragon, parent, db):
-        list_hashdragons = db.list_hashdragons()
+        current_block = parent.wallet.get_local_height()
+        list_hashdragons = list(filter(lambda a: BreedDialog.is_mature(db, a, current_block), db.list_hashdragons()))
         list_hashdragons.remove(hashdragon.hashdragon())
         self.hashdragons = list_hashdragons
         BaseEventDialog.__init__(self, hashdragon, 'Breed', parent, db)
@@ -53,7 +60,6 @@ class BreedDialog(BaseEventDialog):
 
         self.breed_with_cb = QComboBox()
         self.breed_with_cb.addItems(self.hashdragons)
-
 
         # Using current block ref to figure out num of leading zeroes
         # is a good enough heuristic to “predict” leading zeroes of block for breeding.

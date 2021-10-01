@@ -109,7 +109,8 @@ class Plugin(BasePlugin):
                             # If we are higher up in the history, retrieve txn id we started from.
                             current_owner = find_owner_of_hashdragon(self.current_tx)
                             height, _, _ = wallet.get_tx_height(tx.txid())
-                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(), current_owner, self.current_index, height, tx.txid())
+                            self.db.add_hashdragon(hd.hex(), self.current_state, self.current_tx.txid(),
+                                                   current_owner, self.current_index, height, tx.txid())
 
                         return [hd.hex(), self.current_state]
 
@@ -247,8 +248,6 @@ class Plugin(BasePlugin):
         Extracts all the hashdragons in the wallet by going through all the transactions
         in the wallet.
         """
-        txn_list = []
-
         for coin in coins:
             tx = wallet.transactions.get(coin['prevout_hash'])
             self.process_txn(tx, wallet)
@@ -260,17 +259,20 @@ class Plugin(BasePlugin):
         spendable_coins = wallet.get_spendable_coins(None, self.config)
         hashdragons = self.extract_hashdragons(wallet, spendable_coins)
         describer = HashdragonDescriber()
+        current_block = wallet.get_local_height()
 
         for hd in hashdragons:
+            hd_entry = self.db.get_hashdragon_by_hash(hd)
             hd_item = QTreeWidgetItem(ui)
             h = Hashdragon.from_hex_string(hd)
             state = self.db.get_hashdragon_by_hash(hd).get_state()
             hd_item.setData(0, 0, h.hashdragon())
-            hd_item.setData(1, 0, state)
-            hd_item.setData(2, 0, describer.describe(h))
-            hd_item.setData(3, 0, h.strength())
+            hd_item.setData(1, 0, current_block >= (hd_entry.get_hatched_block() + h.maturity()))
+            hd_item.setData(2, 0, state)
+            hd_item.setData(3, 0, describer.describe(h))
+            hd_item.setData(4, 0, h.strength())
             r, g, b = h.colour_as_rgb()
-            hd_item.setBackground(4, QBrush(QColor(r, g, b)))
+            hd_item.setBackground(5, QBrush(QColor(r, g, b)))
             ui.addChild(hd_item)
 
     @hook

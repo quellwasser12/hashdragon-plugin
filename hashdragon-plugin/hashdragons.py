@@ -104,7 +104,6 @@ class HashdragonDescriber:
         else:
             return ''
 
-
     def describe(self, hashdragon):
         virtues = ', '.join(filter(lambda x: x != '',
                          [self.describe_inner_light(hashdragon),
@@ -134,7 +133,7 @@ class Hashdragon:
         return count
 
     def colour_as_rgb(self):
-        r,g,b = self.b[4:7]
+        r, g, b = self.b[4:7]
         return [r, g, b]
 
     def colour(self):
@@ -186,14 +185,17 @@ class Hashdragon:
     def description(self):
         pass
 
-    @classmethod
-    def from_hex_string(self, string):
-        self.b = unhexlify(string)
+    def is_mature(self, current_block):
+        return
 
-        if self.b[0] != 0xd4:
+    @classmethod
+    def from_hex_string(cls, string):
+        b = unhexlify(string)
+        if b[0] != 0xd4:
             raise AssertionError('Not a valid hashdragon')
 
         hd = Hashdragon()
+        hd.b = b
         hd.hash = string
         return hd
 

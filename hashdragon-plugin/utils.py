@@ -2,7 +2,6 @@
 hashdragon-plugin.utils
 
 Utilities to simplify hashdragon operations.
-
 """
 from electroncash import Transaction
 from electroncash.address import Script, Address, ScriptOutput
@@ -111,6 +110,8 @@ def find_hashdragon_hash_from_script(wallet, tx) -> str:
                         else:
                             tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
                             return find_hashdragon_hash_from_script(wallet, tx0)
+
+                 # TODO Breeding case.
 
 
 def find_last_valid_tx_for_hashdragon(wallet, hashdragon, config):

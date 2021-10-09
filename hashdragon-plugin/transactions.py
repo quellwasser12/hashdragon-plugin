@@ -121,6 +121,9 @@ def make_unsigned_transaction(wallet, inputs, outputs,
     ## FIXME: Find a way to support BIP LI01
     ##    https://github.com/kristovatlas/rfc/blob/master/bips/bip-li01.mediawiki
     #tx.BIP_LI01_sort()
+    #  The issue is that sorting inputs and outputs messes with indices that have already
+    #  been set in the OP_RETURN script.
+
     # Timelock tx to current height.
     locktime = wallet.get_local_height()
     if locktime == -1: # We have no local height data (no headers synced).

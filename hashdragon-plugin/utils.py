@@ -148,10 +148,18 @@ def find_owner_of_hashdragon(tx) -> Address:
                     # Return the vout, of type Address
                     assert isinstance(owner_vout, Address), "Something wrong: owner should be Address."
                     return owner_vout
+                elif command_as_int == 212:
+                    i, dest_index = ops[7]
+                    dest_index = index_to_int(dest_index)
+                    owner_vout, _ = tx.get_outputs()[dest_index]
+
+                    # Return the vout, of type Address
+                    assert isinstance(owner_vout, Address), "Something wrong: owner should be Address."
+                    return owner_vout
     return None
 
 
-def xor_arrays(one, two):
+def xor_arrays(one, two) -> bytes:
     return bytes(a ^ b for a, b in zip(one, two))
 
 

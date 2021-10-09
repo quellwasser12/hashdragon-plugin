@@ -1,6 +1,11 @@
 * Hashdragon Electron Cash Plugin
 
-  A Electron Cash plugin to manage hashdragons.
+  A Electron Cash plugin to manage hashdragons.  This plugin is in *beta*, use at your own risks!
+
+  While in beta, the plugin does not automatically submit any transaction to the network: you need to check
+  the transaction in the dialog, and explicitly click "Broadcast" to submit it.  This is to make sure that
+  you have the chance to make sure the tx is OK.  As a result, the list of hashdragons will not refresh after
+  broadcasting the tx, you need to restart Electron Cash to see updates.
 
 
 * License

@@ -199,6 +199,7 @@ class Plugin(BasePlugin):
                         _, dest_index = ops[7]
                         dest_index = index_to_int(dest_index)
                         owner_vout, _ = tx.get_outputs()[dest_index]
+                        current_owner = find_owner_of_hashdragon(tx)
 
                         # Only look into this hashdragon if we are the owner.
                         if wallet.is_mine(owner_vout):
@@ -233,15 +234,18 @@ class Plugin(BasePlugin):
                                 tx0 = Transaction(r, sign_schnorr=wallet.is_schnorr_enabled())
                                 hex_hashdragon_2, _ = self.process_txn(tx0, wallet)
 
+
                             # Compute hash of spawn.
                             if hex_hashdragon_1 is not None and hex_hashdragon_2 is not None:
                                 tx_block_hash = unhexlify(wallet.get_tx_block_hash(tx))
                                 spawn = xor_arrays(unhexlify(hex_hashdragon_1),
-                                                   xor_arrays(hex_hashdragon_2, tx_block_hash))
-                                spawn[0] = b'\xd4'
-                                print("Hex of the spawn: %s" % spawn)
+                                                   xor_arrays(unhexlify(hex_hashdragon_2), tx_block_hash))
+                                spawn_length = len(spawn)
+                                spawn = 'd4' + hexlify(spawn[2:spawn_length-1]).decode()
+                                height, _, _ = wallet.get_tx_height(tx.txid())
+                                self.db.add_hashdragon(spawn, 'Spawn', self.current_tx.txid(),
+                                                       current_owner, self.current_index, height, tx.txid())
                                 return [spawn, self.current_state]
-                                # TODO Add hashdragon to DB.
 
     def extract_hashdragons(self, wallet, coins):
         """

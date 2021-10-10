@@ -8,6 +8,16 @@
   broadcasting the tx, you need to restart Electron Cash to see updates.
 
 
+* Installation
+
+  - Download the plugin zip file
+  - Start Electron Cash (version 4.2.x+), and go to Tools > Installed plugins...
+  - Click “Add Plugin” in the popup, and check all the boxes, making sure you understand the risks!
+  - Select the plugin, and Enable it
+  - Restart Electron Cash.
+
+
+
 * License
 
   Copyright © 2021 Quellwasser

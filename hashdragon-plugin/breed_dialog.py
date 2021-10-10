@@ -29,6 +29,9 @@ class BreedDialog(BaseEventDialog):
         BaseEventDialog.__init__(self, hashdragon, 'Breed', parent, db)
 
     def predict_spawn(self, parent_one, parent_two, leading_zeroes):
+        if leading_zeroes%2 != 0:
+            leading_zeroes = leading_zeroes - 1
+
         predicted_start = 'd4' + \
                           hexlify(xor_arrays(unhexlify(parent_one[2:leading_zeroes]),
                                              unhexlify(parent_two[2:leading_zeroes]))).decode()
